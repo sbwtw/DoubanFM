@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/picture/icon">
+        <file>resource/pause-hover.png</file>
+        <file>resource/pause.png</file>
+        <file>resource/audio.png</file>
+        <file>resource/like-hover.png</file>
+        <file>resource/like-liked.png</file>
+        <file>resource/next-hover.png</file>
+        <file>resource/next.png</file>
+        <file>resource/remove-hover.png</file>
+        <file>resource/remove.png</file>
+        <file>resource/like.png</file>
+        <file>resource/doubanFM.png</file>
+    </qresource>
+</RCC>
