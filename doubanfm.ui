@@ -244,7 +244,7 @@ QPushButton:hover {
            </property>
            <property name="font">
             <font>
-             <pointsize>20</pointsize>
+             <pointsize>18</pointsize>
             </font>
            </property>
            <property name="text">
