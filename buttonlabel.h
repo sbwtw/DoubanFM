@@ -17,16 +17,22 @@ public:
 
 signals:
     void clicked();
+    void stateChanged(const State state);
 
 public:
-    ButtonLabel();
+    explicit ButtonLabel(QWidget *parent = 0);
 
 private:
     void mouseReleaseEvent(QMouseEvent *e);
-    void mouseEnterEvent(QMouseEvent *e);
+    void mousePressEvent(QMouseEvent *e);
+    void enterEvent(QEvent *e);
+    void leaveEvent(QEvent *e);
 
 private:
     State state = Normal;
+
+    bool checked = false;
+    bool checkable = false;
 };
 
 #endif // BUTTONLABEL_H
