@@ -5,7 +5,7 @@
 ButtonLabel::ButtonLabel(QWidget *parent) :
     QLabel(parent)
 {
-
+    connect(this, &ButtonLabel::stateChanged, this, &ButtonLabel::setShownImage);
 }
 
 void ButtonLabel::mouseReleaseEvent(QMouseEvent *e)
@@ -54,5 +54,16 @@ void ButtonLabel::leaveEvent(QEvent *e)
         return;
     state = Normal;
     emit stateChanged(state);
+}
+
+void ButtonLabel::setShownImage()
+{
+    switch (state)
+    {
+    case Normal:    if (!normalImage.isNull()) setPixmap(normalImage);      break;
+    case Hover:     if (!hoverImage.isNull()) setPixmap(hoverImage);        break;
+    case Press:     if (!pressImage.isNull()) setPixmap(pressImage);        break;
+    case Checked:   if (!checkedImage.isNull()) setPixmap(checkedImage);    break;
+    }
 }
 
