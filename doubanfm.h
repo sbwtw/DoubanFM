@@ -2,11 +2,12 @@
 #define DOUBANFM_H
 
 #include <QFrame>
+#include <QLabel>
+#include <QSlider>
+#include <QProgressBar>
+#include <QPropertyAnimation>
 
-class QLabel;
 class ButtonLabel;
-class QSlider;
-class QProgressBar;
 class DoubanFM : public QFrame
 {
     Q_OBJECT
@@ -21,6 +22,11 @@ private:
     void mouseReleaseEvent(QMouseEvent *e);
     bool eventFilter(QObject *o, QEvent *e);
 
+private slots:
+    void showVolumeSlider();
+    void hideVolumeSlider();
+    void toggleLayricsWindow();
+
 private:
     bool mousePressed = false;
 
@@ -32,12 +38,15 @@ private:
     ButtonLabel *trash;
     ButtonLabel *next;
     ButtonLabel *volumeIcon;
+    ButtonLabel *layricTips;
     QLabel *artist;
     QLabel *album;
     QLabel *songName;
     QLabel *time;
     QProgressBar *timeAxis;
-    QSlider *volume;
+    QSlider *volumeSlider;
+
+    QPropertyAnimation *volumeAnimation;
 };
 
 #endif // DOUBANFM_H
