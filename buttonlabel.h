@@ -23,10 +23,10 @@ signals:
 public:
     explicit ButtonLabel(QWidget *parent = 0);
 
-    inline void setNormalImage(const QPixmap &img) {normalImage = img;}
-    inline void setHoverImage(const QPixmap &img) {hoverImage = img;}
-    inline void setPressImage(const QPixmap &img) {pressImage = img;}
-    inline void setCheckedImage(const QPixmap &img) {checkedImage = img;}
+    inline void setNormalImage(const QPixmap &img) {normalImage = img; setShownImage();}
+    inline void setHoverImage(const QPixmap &img) {hoverImage = img; setShownImage();}
+    inline void setPressImage(const QPixmap &img) {pressImage = img; setShownImage();}
+    inline void setCheckedImage(const QPixmap &img) {checkedImage = img; setShownImage();}
 
 private:
     void mouseReleaseEvent(QMouseEvent *e);
