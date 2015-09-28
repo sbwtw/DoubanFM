@@ -3,11 +3,17 @@
 
 #include <QFrame>
 #include <QLabel>
-#include <QSlider>
+#include <QList>
+#include <QNetworkAccessManager>
+#include <QNetworkCookieJar>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QProgressBar>
 #include <QPropertyAnimation>
+#include <QSlider>
 
 class ButtonLabel;
+class Song;
 class DoubanFM : public QFrame
 {
     Q_OBJECT
@@ -27,10 +33,14 @@ private slots:
     void hideVolumeSlider();
     void toggleLayricsWindow();
 
+    void loadSongList();
+    void loadSongListFinish();
+
 private:
     bool mousePressed = false;
 
     QPoint mousePressPoint;
+    QList<Song> songList;
 
     ButtonLabel *picture;
     ButtonLabel *pause;
@@ -47,6 +57,7 @@ private:
     QSlider *volumeSlider;
 
     QPropertyAnimation *volumeAnimation;
+    QNetworkAccessManager *manager;
 };
 
 #endif // DOUBANFM_H

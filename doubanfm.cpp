@@ -1,5 +1,6 @@
 #include "doubanfm.h"
 #include "buttonlabel.h"
+#include "song.h"
 
 #include <QApplication>
 #include <QDebug>
@@ -7,12 +8,17 @@
 #include <QGraphicsDropShadowEffect>
 #include <QHBoxLayout>
 #include <QIcon>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
 #include <QMouseEvent>
 #include <QProgressBar>
 #include <QPropertyAnimation>
 #include <QSlider>
 
-DoubanFM::DoubanFM()
+DoubanFM::DoubanFM() :
+    manager(new QNetworkAccessManager)
 {
     picture = new ButtonLabel;
     picture->setFixedWidth(245);
@@ -147,6 +153,8 @@ DoubanFM::DoubanFM()
 
     connect(layricTips, &ButtonLabel::clicked, picture, &ButtonLabel::clicked);
     connect(picture, &ButtonLabel::clicked, this, &DoubanFM::toggleLayricsWindow);
+
+    loadSongList();
 }
 
 DoubanFM::~DoubanFM()
@@ -215,4 +223,37 @@ void DoubanFM::hideVolumeSlider()
 void DoubanFM::toggleLayricsWindow()
 {
     qDebug() << "toggle layrics";
+}
+
+void DoubanFM::loadSongList()
+{
+    QUrl url("http://douban.fm/j/mine/playlist?type=n&sid=&pt=0.0&channel=0&from=mainsite&r=1d85d147d5");
+    QNetworkReply *reply = manager->get(QNetworkRequest(url));
+
+    connect(reply, &QNetworkReply::finished, this, &DoubanFM::loadSongListFinish);
+}
+
+void DoubanFM::loadSongListFinish()
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
+    if (!reply)
+        return;
+
+    const QJsonDocument document = QJsonDocument::fromJson(reply->readAll());
+    if (!document.isObject())
+        return;
+
+    const QJsonObject &obj = document.object();
+    const QJsonValue &value = obj.value("song");
+    if (!value.isArray())
+        return;
+
+    const QJsonArray &list = value.toArray();
+    for (const QJsonValue & value : list) {
+        Song *song = new Song;
+        song->setData(value);
+        songList.append(*song);
+    }
+
+    qDebug() << songList;
 }
