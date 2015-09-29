@@ -1,8 +1,8 @@
 #include "doubanfm.h"
 #include "buttonlabel.h"
 #include "song.h"
-#include "channel.h"
 #include "layricframe.h"
+#include "channelframe.h"
 
 #include <QApplication>
 #include <QDebug>
@@ -22,8 +22,11 @@
 
 DoubanFM::DoubanFM() :
     layricWindow(new LayricFrame),
+    channelWindow(new ChannelFrame),
     manager(new QNetworkAccessManager)
 {
+    channelWindow->setNetworkAccessManager(manager);
+
     picture = new ButtonLabel;
     picture->setFixedWidth(245);
     picture->installEventFilter(this);
@@ -158,7 +161,10 @@ DoubanFM::DoubanFM() :
     connect(layricTips, &ButtonLabel::clicked, picture, &ButtonLabel::clicked);
     connect(picture, &ButtonLabel::clicked, this, &DoubanFM::toggleLayricsWindow);
 
-    loadChannelList();
+    channelWindow->show();
+    channelWindow->loadChannelList();
+
+    qDebug() << manager->cookieJar();
 }
 
 DoubanFM::~DoubanFM()
@@ -195,6 +201,11 @@ void DoubanFM::keyPressEvent(QKeyEvent *e)
     case Qt::Key_L:     toggleLayricsWindow();      break;
     default:;
     }
+}
+
+void DoubanFM::moveEvent(QMoveEvent *e)
+{
+    channelWindow->move(e->pos() + channelWindowOffset);
 }
 
 bool DoubanFM::eventFilter(QObject *o, QEvent *e)
@@ -245,6 +256,11 @@ void DoubanFM::toggleLayricsWindow()
     layricWindow->move(200, 200);
 }
 
+void DoubanFM::selectChannel()
+{
+
+}
+
 void DoubanFM::loadSongList()
 {
     QUrl url("http://douban.fm/j/mine/playlist?type=n&sid=&pt=0.0&channel=0&from=mainsite&r=1d85d147d5");
@@ -260,6 +276,7 @@ void DoubanFM::loadSongListFinish()
         return;
 
     const QJsonDocument document = QJsonDocument::fromJson(reply->readAll());
+    reply->deleteLater();
     if (!document.isObject())
         return;
 
@@ -276,35 +293,4 @@ void DoubanFM::loadSongListFinish()
     }
 
     qDebug() << songList;
-}
-
-void DoubanFM::loadChannelList()
-{
-    QUrl url("http://www.douban.com/j/app/radio/channels");
-    QNetworkReply *reply = manager->get(QNetworkRequest(url));
-
-    connect(reply, &QNetworkReply::finished, this, &DoubanFM::loadChannelListFinish);
-}
-
-void DoubanFM::loadChannelListFinish()
-{
-    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
-    if (!reply)
-        return;
-
-    const QJsonDocument document = QJsonDocument::fromJson(reply->readAll());
-    if (!document.isObject())
-        return;
-
-    const QJsonObject &obj = document.object();
-    const QJsonValue &value = obj.value("channels");
-    if (!value.isArray())
-        return;
-
-    Channel channel;
-    const QJsonArray &list = value.toArray();
-    for (const QJsonValue &value : list) {
-        channel.setData(value);
-        qDebug() << value;
-    }
 }

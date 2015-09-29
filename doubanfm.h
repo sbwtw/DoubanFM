@@ -12,6 +12,9 @@
 #include <QPropertyAnimation>
 #include <QSlider>
 
+#include <memory>
+
+class ChannelFrame;
 class ButtonLabel;
 class Song;
 class LayricFrame;
@@ -28,22 +31,24 @@ private:
     void mouseMoveEvent(QMouseEvent *e);
     void mouseReleaseEvent(QMouseEvent *e);
     void keyPressEvent(QKeyEvent *e);
+    void moveEvent(QMoveEvent *e);
     bool eventFilter(QObject *o, QEvent *e);
 
 private slots:
     void showVolumeSlider();
     void hideVolumeSlider();
     void toggleLayricsWindow();
+    void selectChannel();
 
     void loadSongList();
     void loadSongListFinish();
-    void loadChannelList();
-    void loadChannelListFinish();
 
 private:
     bool mousePressed = false;
-
     QPoint mousePressPoint;
+    QPoint channelWindowOffset = QPoint(530, 0);
+
+    QString channel;
     QList<Song> songList;
 
     ButtonLabel *picture;
@@ -61,9 +66,10 @@ private:
     QSlider *volumeSlider;
 
     LayricFrame *layricWindow;
+    ChannelFrame *channelWindow;
 
     QPropertyAnimation *volumeAnimation;
-    QNetworkAccessManager *manager;
+    std::shared_ptr<QNetworkAccessManager> manager;
 };
 
 #endif // DOUBANFM_H
