@@ -16,12 +16,16 @@ CONFIG += c++11
 SOURCES += main.cpp \
     doubanfm.cpp \
     buttonlabel.cpp \
-    song.cpp
+    song.cpp \
+    channel.cpp \
+    layricframe.cpp
 
 HEADERS  += \
     doubanfm.h \
     buttonlabel.h \
-    song.h
+    song.h \
+    channel.h \
+    layricframe.h
 
 RESOURCES += \
     resource.qrc

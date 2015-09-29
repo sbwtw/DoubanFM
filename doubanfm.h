@@ -14,6 +14,7 @@
 
 class ButtonLabel;
 class Song;
+class LayricFrame;
 class DoubanFM : public QFrame
 {
     Q_OBJECT
@@ -26,6 +27,7 @@ private:
     void mousePressEvent(QMouseEvent *e);
     void mouseMoveEvent(QMouseEvent *e);
     void mouseReleaseEvent(QMouseEvent *e);
+    void keyPressEvent(QKeyEvent *e);
     bool eventFilter(QObject *o, QEvent *e);
 
 private slots:
@@ -35,6 +37,8 @@ private slots:
 
     void loadSongList();
     void loadSongListFinish();
+    void loadChannelList();
+    void loadChannelListFinish();
 
 private:
     bool mousePressed = false;
@@ -55,6 +59,8 @@ private:
     QLabel *time;
     QProgressBar *timeAxis;
     QSlider *volumeSlider;
+
+    LayricFrame *layricWindow;
 
     QPropertyAnimation *volumeAnimation;
     QNetworkAccessManager *manager;

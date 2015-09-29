@@ -1,6 +1,8 @@
 #include "doubanfm.h"
 #include "buttonlabel.h"
 #include "song.h"
+#include "channel.h"
+#include "layricframe.h"
 
 #include <QApplication>
 #include <QDebug>
@@ -12,12 +14,14 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QKeyEvent>
 #include <QMouseEvent>
 #include <QProgressBar>
 #include <QPropertyAnimation>
 #include <QSlider>
 
 DoubanFM::DoubanFM() :
+    layricWindow(new LayricFrame),
     manager(new QNetworkAccessManager)
 {
     picture = new ButtonLabel;
@@ -154,7 +158,7 @@ DoubanFM::DoubanFM() :
     connect(layricTips, &ButtonLabel::clicked, picture, &ButtonLabel::clicked);
     connect(picture, &ButtonLabel::clicked, this, &DoubanFM::toggleLayricsWindow);
 
-    loadSongList();
+    loadChannelList();
 }
 
 DoubanFM::~DoubanFM()
@@ -181,6 +185,16 @@ void DoubanFM::mouseReleaseEvent(QMouseEvent *e)
     Q_UNUSED(e)
 
     mousePressed = false;
+}
+
+void DoubanFM::keyPressEvent(QKeyEvent *e)
+{
+    const int key = e->key();
+
+    switch (key) {
+    case Qt::Key_L:     toggleLayricsWindow();      break;
+    default:;
+    }
 }
 
 bool DoubanFM::eventFilter(QObject *o, QEvent *e)
@@ -223,6 +237,12 @@ void DoubanFM::hideVolumeSlider()
 void DoubanFM::toggleLayricsWindow()
 {
     qDebug() << "toggle layrics";
+    layricWindow->setVisible(!layricWindow->isVisible());
+
+    if (!layricWindow->isVisible())
+        return;
+
+    layricWindow->move(200, 200);
 }
 
 void DoubanFM::loadSongList()
@@ -248,12 +268,43 @@ void DoubanFM::loadSongListFinish()
     if (!value.isArray())
         return;
 
+    Song song;
     const QJsonArray &list = value.toArray();
-    for (const QJsonValue & value : list) {
-        Song *song = new Song;
-        song->setData(value);
-        songList.append(*song);
+    for (const QJsonValue &value : list) {
+        song.setData(value);
+        songList.append(song);
     }
 
     qDebug() << songList;
+}
+
+void DoubanFM::loadChannelList()
+{
+    QUrl url("http://www.douban.com/j/app/radio/channels");
+    QNetworkReply *reply = manager->get(QNetworkRequest(url));
+
+    connect(reply, &QNetworkReply::finished, this, &DoubanFM::loadChannelListFinish);
+}
+
+void DoubanFM::loadChannelListFinish()
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
+    if (!reply)
+        return;
+
+    const QJsonDocument document = QJsonDocument::fromJson(reply->readAll());
+    if (!document.isObject())
+        return;
+
+    const QJsonObject &obj = document.object();
+    const QJsonValue &value = obj.value("channels");
+    if (!value.isArray())
+        return;
+
+    Channel channel;
+    const QJsonArray &list = value.toArray();
+    for (const QJsonValue &value : list) {
+        channel.setData(value);
+        qDebug() << value;
+    }
 }
