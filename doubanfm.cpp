@@ -199,8 +199,12 @@ void DoubanFM::keyPressEvent(QKeyEvent *e)
 
     switch (key) {
     case Qt::Key_L:     toggleLayricsWindow();      break;
+    case Qt::Key_C:     toggleChannelsWindow();     break;
+    case Qt::Key_Escape:qApp->quit();               break;
     default:;
     }
+
+    activateWindow();
 }
 
 void DoubanFM::moveEvent(QMoveEvent *e)
@@ -254,6 +258,11 @@ void DoubanFM::toggleLayricsWindow()
         return;
 
     layricWindow->move(200, 200);
+}
+
+void DoubanFM::toggleChannelsWindow()
+{
+    channelWindow->setVisible(!channelWindow->isVisible());
 }
 
 void DoubanFM::selectChannel()

@@ -38,6 +38,7 @@ private slots:
     void showVolumeSlider();
     void hideVolumeSlider();
     void toggleLayricsWindow();
+    void toggleChannelsWindow();
     void selectChannel();
 
     void loadSongList();
