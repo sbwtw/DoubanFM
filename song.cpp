@@ -12,7 +12,7 @@ Song::Song(const Song &song) : QObject()
 
 void Song::operator =(const Song &song)
 {
-    data = song.getData();
+    *this = song;
 }
 
 QDebug operator <<(QDebug debug, const Song &song)

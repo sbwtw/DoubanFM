@@ -60,8 +60,26 @@ void ChannelFrame::loadChannelListFinish()
     const QJsonArray &list = value.toArray();
     for (const QJsonValue &value : list) {
         channel.setData(value);
-        qDebug() << value;
+        channelList.append(channel);
     }
+
+    // sort by seq_id and channel_id
+    std::sort(channelList.begin(), channelList.end(), [] (const Channel &c1, const Channel &c2) {
+        const int seq1 = c1.seq();
+        const int seq2 = c2.seq();
+
+        if (seq1 != seq2)
+            return seq1 < seq2;
+        return c1.id() < c2.id();
+    });
+
+    if (currentChannel.id() == -1) {
+        currentChannel = channelList.first();
+        emit ChannelSelected(currentChannel);
+    }
+
+//    for (const Channel &c : channelList)
+//        qDebug() << c;
 }
 
 

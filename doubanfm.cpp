@@ -1,8 +1,4 @@
 #include "doubanfm.h"
-#include "buttonlabel.h"
-#include "song.h"
-#include "layricframe.h"
-#include "channelframe.h"
 
 #include <QApplication>
 #include <QDebug>
@@ -160,11 +156,10 @@ DoubanFM::DoubanFM() :
 
     connect(layricTips, &ButtonLabel::clicked, picture, &ButtonLabel::clicked);
     connect(picture, &ButtonLabel::clicked, this, &DoubanFM::toggleLayricsWindow);
+    connect(channelWindow, &ChannelFrame::ChannelSelected, this, &DoubanFM::channelChanged);
 
     channelWindow->show();
     channelWindow->loadChannelList();
-
-    qDebug() << manager->cookieJar();
 }
 
 DoubanFM::~DoubanFM()
@@ -265,14 +260,15 @@ void DoubanFM::toggleChannelsWindow()
     channelWindow->setVisible(!channelWindow->isVisible());
 }
 
-void DoubanFM::selectChannel()
+void DoubanFM::channelChanged(const Channel &channel)
 {
-
+    qDebug() << "select to channel: " << channel;
 }
 
 void DoubanFM::loadSongList()
 {
-    QUrl url("http://douban.fm/j/mine/playlist?type=n&sid=&pt=0.0&channel=0&from=mainsite&r=1d85d147d5");
+    // TODO:
+    QUrl url("http://www.douban.com/j/app/radio/people");
     QNetworkReply *reply = manager->get(QNetworkRequest(url));
 
     connect(reply, &QNetworkReply::finished, this, &DoubanFM::loadSongListFinish);

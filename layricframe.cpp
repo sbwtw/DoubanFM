@@ -7,21 +7,24 @@ LayricFrame::LayricFrame() : QFrame(0)
 {
     layric = new QLabel;
     layric->setText("Layric");
+    layric->setStyleSheet("QLabel {"
+                          "font-size:18px;"
+                          "color:#a42727;"
+                          "}");
 
     QHBoxLayout *mainLayout = new QHBoxLayout;
     mainLayout->addWidget(layric);
     mainLayout->setSpacing(0);
     mainLayout->setMargin(0);
 
-    opacityEffect = new QGraphicsOpacityEffect;
+//    shadowEffect = new QGraphicsDropShadowEffect(layric);
+//    shadowEffect->setBlurRadius(10);
+//    shadowEffect->setOffset(0, 0);
+//    shadowEffect->setColor(Qt::cyan);
+//    layric->setGraphicsEffect(shadowEffect);
+
+    opacityEffect = new QGraphicsOpacityEffect(this);
     opacityEffect->setOpacity(1);
-
-    shadowEffect = new QGraphicsDropShadowEffect;
-    shadowEffect->setBlurRadius(10);
-    shadowEffect->setOffset(0, 0);
-    shadowEffect->setColor(Qt::cyan);
-
-    layric->setGraphicsEffect(shadowEffect);
 
     setLayout(mainLayout);
     setFixedSize(800, 50);

@@ -1,6 +1,9 @@
 #ifndef CHANNELFRAME_H
 #define CHANNELFRAME_H
 
+#include "channel.h"
+
+#include <QList>
 #include <QFrame>
 #include <QNetworkAccessManager>
 
@@ -13,16 +16,22 @@ class ChannelFrame : public QFrame
 public:
     explicit ChannelFrame(QWidget *parent = 0);
 
-    void setNetworkAccessManager(const std::shared_ptr<QNetworkAccessManager> &namPtr) {manager = namPtr;}
+    inline void setNetworkAccessManager(const std::shared_ptr<QNetworkAccessManager> &namPtr) {manager = namPtr;}
+    inline const Channel &channel() const {return currentChannel;}
 
-public:
     void loadChannelList();
+
+signals:
+    void ChannelSelected(Channel &channel);
 
 private:
     void loadChannelListFinish();
 
 private:
     std::shared_ptr<QNetworkAccessManager> manager;
+
+    Channel currentChannel;
+    QList<Channel> channelList;
 };
 
 #endif // CHANNELFRAME_H

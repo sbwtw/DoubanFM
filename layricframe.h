@@ -13,6 +13,9 @@ class LayricFrame : public QFrame
 public:
     LayricFrame();
 
+    inline void setLayricAlignment(Qt::Alignment alignment) const
+    {layric->setAlignment(alignment);}
+
 private:
     void mousePressEvent(QMouseEvent *e);
     void mouseReleaseEvent(QMouseEvent *e);

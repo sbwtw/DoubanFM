@@ -1,9 +1,15 @@
 #ifndef DOUBANFM_H
 #define DOUBANFM_H
 
+#include "buttonlabel.h"
+#include "layricframe.h"
+#include "channelframe.h"
+#include "song.h"
+
 #include <QFrame>
 #include <QLabel>
 #include <QList>
+#include <QMediaPlayer>
 #include <QNetworkAccessManager>
 #include <QNetworkCookieJar>
 #include <QNetworkReply>
@@ -14,10 +20,6 @@
 
 #include <memory>
 
-class ChannelFrame;
-class ButtonLabel;
-class Song;
-class LayricFrame;
 class DoubanFM : public QFrame
 {
     Q_OBJECT
@@ -39,7 +41,7 @@ private slots:
     void hideVolumeSlider();
     void toggleLayricsWindow();
     void toggleChannelsWindow();
-    void selectChannel();
+    void channelChanged(const Channel &channel);
 
     void loadSongList();
     void loadSongListFinish();
@@ -48,9 +50,6 @@ private:
     bool mousePressed = false;
     QPoint mousePressPoint;
     QPoint channelWindowOffset = QPoint(530, 0);
-
-    QString channel;
-    QList<Song> songList;
 
     ButtonLabel *picture;
     ButtonLabel *pause;
@@ -65,6 +64,9 @@ private:
     QLabel *time;
     QProgressBar *timeAxis;
     QSlider *volumeSlider;
+
+    QList<Song> songList;
+    QMediaPlayer player;
 
     LayricFrame *layricWindow;
     ChannelFrame *channelWindow;
