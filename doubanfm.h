@@ -17,6 +17,7 @@
 #include <QProgressBar>
 #include <QPropertyAnimation>
 #include <QSlider>
+#include <QTimer>
 
 #include <memory>
 
@@ -43,6 +44,10 @@ private slots:
     void toggleChannelsWindow();
     void channelChanged(const Channel &channel);
 
+    void play();
+
+    void refreshTimeInfo();
+
     void loadSongList();
     void loadSongListFinish();
 
@@ -67,6 +72,8 @@ private:
 
     QList<Song> songList;
     QMediaPlayer player;
+
+    QTimer *refreshTimer;
 
     LayricFrame *layricWindow;
     ChannelFrame *channelWindow;

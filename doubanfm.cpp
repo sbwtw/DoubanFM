@@ -11,10 +11,12 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QKeyEvent>
+#include <QMediaContent>
 #include <QMouseEvent>
 #include <QProgressBar>
 #include <QPropertyAnimation>
 #include <QSlider>
+#include <QUrlQuery>
 
 DoubanFM::DoubanFM() :
     layricWindow(new LayricFrame),
@@ -54,6 +56,7 @@ DoubanFM::DoubanFM() :
     timeAxis = new QProgressBar();
     timeAxis->setOrientation(Qt::Horizontal);
     timeAxis->setFixedHeight(2);
+    timeAxis->setMinimum(0);
     timeAxis->setStyleSheet("QProgressBar { \
                                  background-color:#ddd; \
                                  border:none; \
@@ -94,6 +97,10 @@ DoubanFM::DoubanFM() :
     songName->setText("SongName");
     time->setText("-0:00");
 #endif
+
+    refreshTimer = new QTimer(this);
+    refreshTimer->setInterval(1000);
+    refreshTimer->start();
 
     QHBoxLayout *centerCtrlLayout = new QHBoxLayout;
     centerCtrlLayout->addStretch();
@@ -157,6 +164,8 @@ DoubanFM::DoubanFM() :
     connect(layricTips, &ButtonLabel::clicked, picture, &ButtonLabel::clicked);
     connect(picture, &ButtonLabel::clicked, this, &DoubanFM::toggleLayricsWindow);
     connect(channelWindow, &ChannelFrame::ChannelSelected, this, &DoubanFM::channelChanged);
+    connect(&player, &QMediaPlayer::durationChanged, timeAxis, &QProgressBar::setMaximum);
+    connect(refreshTimer, &QTimer::timeout, this, &DoubanFM::refreshTimeInfo);
 
     channelWindow->show();
     channelWindow->loadChannelList();
@@ -263,12 +272,43 @@ void DoubanFM::toggleChannelsWindow()
 void DoubanFM::channelChanged(const Channel &channel)
 {
     qDebug() << "select to channel: " << channel;
+
+    // clear old list
+    songList.clear();
+
+    // load new song list
+    loadSongList();
+}
+
+void DoubanFM::play()
+{
+    player.setMedia(QMediaContent(songList.first().url()));
+    player.play();
+}
+
+void DoubanFM::refreshTimeInfo()
+{
+    const int duration = player.duration();
+    const int position = player.position();
+
+    timeAxis->setValue(position);
+    timeAxis->update();
+
+    const int timeLeft = (duration - position) / 1000;
+    time->setText(QString("-%1:%2")
+                  .arg(timeLeft / 60)
+                  .arg(timeLeft % 60, 2, 10, QLatin1Char('0')));
 }
 
 void DoubanFM::loadSongList()
 {
-    // TODO:
     QUrl url("http://www.douban.com/j/app/radio/people");
+    QUrlQuery query;
+    query.addQueryItem("app_name", "radio_desktop_win");
+    query.addQueryItem("version", "100");
+    query.addQueryItem("type", "n");
+    query.addQueryItem("channel", QString::number(channelWindow->channel().id()));
+    url.setQuery(query);
     QNetworkReply *reply = manager->get(QNetworkRequest(url));
 
     connect(reply, &QNetworkReply::finished, this, &DoubanFM::loadSongListFinish);
@@ -286,6 +326,12 @@ void DoubanFM::loadSongListFinish()
         return;
 
     const QJsonObject &obj = document.object();
+    const int stat = obj.value("r").toInt(-1);
+    if (stat) {
+        qWarning() << "error: " << obj;
+        return;
+    }
+
     const QJsonValue &value = obj.value("song");
     if (!value.isArray())
         return;
@@ -297,5 +343,5 @@ void DoubanFM::loadSongListFinish()
         songList.append(song);
     }
 
-    qDebug() << songList;
+    play();
 }

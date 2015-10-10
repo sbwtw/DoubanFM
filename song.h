@@ -19,6 +19,8 @@ public:
     inline void setData(const QJsonValue &jsonObj) {data = jsonObj;}
     inline QJsonValue getData() const {return data;}
 
+    const QString url() const;
+
 private:
     QJsonValue data;
 };
