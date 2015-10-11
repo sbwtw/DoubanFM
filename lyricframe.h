@@ -1,20 +1,37 @@
 #ifndef LAYRICFRAME_H
 #define LAYRICFRAME_H
 
+#include "song.h"
+
 #include <QFrame>
 #include <QLabel>
 #include <QGraphicsOpacityEffect>
 #include <QGraphicsDropShadowEffect>
+#include <QNetworkAccessManager>
 
-class LayricFrame : public QFrame
+#include <memory>
+
+class LyricText {
+public:
+    LyricText(qint64 start, const QString &text);
+
+    qint64 start;
+    QString text;
+};
+
+class LyricFrame : public QFrame
 {
     Q_OBJECT
 
 public:
-    LayricFrame();
+    LyricFrame();
 
+    inline void setNetworkAccessManager(const std::shared_ptr<QNetworkAccessManager> &namPtr) {manager = namPtr;}
     inline void setLayricAlignment(Qt::Alignment alignment) const
     {layric->setAlignment(alignment);}
+
+    void loadLyric(const Song &song);
+    void refreshLyric(qint64 msec);
 
 private:
     void mousePressEvent(QMouseEvent *e);
@@ -23,11 +40,20 @@ private:
     void enterEvent(QEvent *e);
     void leaveEvent(QEvent *e);
 
+    void loadLyricFinish();
+    void addLyricLine(const QString &times, const QString &text);
+
 private:
+    std::shared_ptr<QNetworkAccessManager> manager;
+
+    int lyricOffset = 1000;
+    int nextLyricPos = 0;
     bool mousePressed = false;
     QPoint mousePressPoint;
 
     QLabel *layric;
+
+    QList<LyricText> lyricsList;
 
     QGraphicsOpacityEffect *opacityEffect;
     QGraphicsDropShadowEffect *shadowEffect;

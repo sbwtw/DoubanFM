@@ -19,11 +19,12 @@
 #include <QUrlQuery>
 
 DoubanFM::DoubanFM() :
-    layricWindow(new LayricFrame),
+    lyricWindow(new LyricFrame),
     channelWindow(new ChannelFrame),
     manager(new QNetworkAccessManager)
 {
     channelWindow->setNetworkAccessManager(manager);
+    lyricWindow->setNetworkAccessManager(manager);
 
     picture = new ButtonLabel;
     picture->setFixedWidth(245);
@@ -98,9 +99,12 @@ DoubanFM::DoubanFM() :
     time->setText("-0:00");
 #endif
 
-    refreshTimer = new QTimer(this);
-    refreshTimer->setInterval(1000);
-    refreshTimer->start();
+    refreshUITimer = new QTimer(this);
+    refreshUITimer->setInterval(1000);
+    refreshUITimer->start();
+    refreshLyricTimer = new QTimer(this);
+    refreshLyricTimer->setInterval(90);
+    refreshLyricTimer->start();
 
     QHBoxLayout *centerCtrlLayout = new QHBoxLayout;
     centerCtrlLayout->addStretch();
@@ -165,15 +169,15 @@ DoubanFM::DoubanFM() :
     connect(picture, &ButtonLabel::clicked, this, &DoubanFM::toggleLayricsWindow);
     connect(channelWindow, &ChannelFrame::ChannelSelected, this, &DoubanFM::channelChanged);
     connect(&player, &QMediaPlayer::durationChanged, timeAxis, &QProgressBar::setMaximum);
-    connect(refreshTimer, &QTimer::timeout, this, &DoubanFM::refreshTimeInfo);
+    connect(refreshUITimer, &QTimer::timeout, this, &DoubanFM::refreshTimeInfo);
+    connect(refreshUITimer, &QTimer::timeout, this, &DoubanFM::refreshLyricText);
 
-    channelWindow->show();
+    toggleLayricsWindow();
     channelWindow->loadChannelList();
 }
 
 DoubanFM::~DoubanFM()
 {
-
 }
 
 void DoubanFM::mousePressEvent(QMouseEvent *e)
@@ -256,12 +260,12 @@ void DoubanFM::hideVolumeSlider()
 void DoubanFM::toggleLayricsWindow()
 {
     qDebug() << "toggle layrics";
-    layricWindow->setVisible(!layricWindow->isVisible());
+    lyricWindow->setVisible(!lyricWindow->isVisible());
 
-    if (!layricWindow->isVisible())
+    if (!lyricWindow->isVisible())
         return;
 
-    layricWindow->move(200, 200);
+    lyricWindow->move(200, 200);
 }
 
 void DoubanFM::toggleChannelsWindow()
@@ -282,8 +286,11 @@ void DoubanFM::channelChanged(const Channel &channel)
 
 void DoubanFM::play()
 {
+    qDebug() << songList.first();
     player.setMedia(QMediaContent(songList.first().url()));
     player.play();
+
+    lyricWindow->loadLyric(songList.first());
 }
 
 void DoubanFM::refreshTimeInfo()
@@ -298,6 +305,11 @@ void DoubanFM::refreshTimeInfo()
     time->setText(QString("-%1:%2")
                   .arg(timeLeft / 60)
                   .arg(timeLeft % 60, 2, 10, QLatin1Char('0')));
+}
+
+void DoubanFM::refreshLyricText()
+{
+    lyricWindow->refreshLyric(player.position());
 }
 
 void DoubanFM::loadSongList()

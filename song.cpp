@@ -17,13 +17,13 @@ void Song::operator =(const Song &song)
     data = song.getData();
 }
 
-const QString Song::url() const
+const QString Song::getString(const QString &key) const
 {
     if (!data.isObject())
         return QString();
 
     const QJsonObject &obj = data.toObject();
-    return obj.value("url").toString();
+    return obj.value(key).toString();
 }
 
 QDebug operator <<(QDebug debug, const Song &song)

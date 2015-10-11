@@ -19,7 +19,19 @@ public:
     inline void setData(const QJsonValue &jsonObj) {data = jsonObj;}
     inline QJsonValue getData() const {return data;}
 
-    const QString url() const;
+    inline const QString aid() const {return getString("aid");}
+    inline const QString album() const {return getString("album");}
+    inline const QString albumtitle() const {return getString("albumtitle");}
+    inline const QString artist() const {return getString("artist");}
+    inline const QString picture() const {return getString("picture");}
+    inline const QString sha256() const {return getString("sha256");}
+    inline const QString sid() const {return getString("sid");}
+    inline const QString ssid() const {return getString("ssid");}
+    inline const QString title() const {return getString("title");}
+    inline const QString url() const {return getString("url");}
+
+private:
+    const QString getString(const QString &key) const;
 
 private:
     QJsonValue data;

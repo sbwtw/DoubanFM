@@ -11,16 +11,16 @@ SOURCES += main.cpp \
     buttonlabel.cpp \
     song.cpp \
     channel.cpp \
-    layricframe.cpp \
-    channelframe.cpp
+    channelframe.cpp \
+    lyricframe.cpp
 
 HEADERS  += \
     doubanfm.h \
     buttonlabel.h \
     song.h \
     channel.h \
-    layricframe.h \
-    channelframe.h
+    channelframe.h \
+    lyricframe.h
 
 RESOURCES += \
     resource.qrc

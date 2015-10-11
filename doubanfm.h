@@ -2,7 +2,7 @@
 #define DOUBANFM_H
 
 #include "buttonlabel.h"
-#include "layricframe.h"
+#include "lyricframe.h"
 #include "channelframe.h"
 #include "song.h"
 
@@ -29,6 +29,9 @@ public:
     DoubanFM();
     ~DoubanFM();
 
+    QTimer *getRefreshTimer() const;
+    void setRefreshTimer(QTimer *value);
+
 private:
     void mousePressEvent(QMouseEvent *e);
     void mouseMoveEvent(QMouseEvent *e);
@@ -47,6 +50,7 @@ private slots:
     void play();
 
     void refreshTimeInfo();
+    void refreshLyricText();
 
     void loadSongList();
     void loadSongListFinish();
@@ -73,9 +77,10 @@ private:
     QList<Song> songList;
     QMediaPlayer player;
 
-    QTimer *refreshTimer;
+    QTimer *refreshUITimer;
+    QTimer *refreshLyricTimer;
 
-    LayricFrame *layricWindow;
+    LyricFrame *lyricWindow;
     ChannelFrame *channelWindow;
 
     QPropertyAnimation *volumeAnimation;
