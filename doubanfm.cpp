@@ -1,276 +1,359 @@
 #include "doubanfm.h"
-#include "ui_doubanfm.h"
-#include "song.h"
 
-#include <QNetworkRequest>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QMediaContent>
-#include <QString>
-#include <QMouseEvent>
-#include <QGraphicsDropShadowEffect>
+#include <QApplication>
 #include <QDebug>
+#include <QDesktopWidget>
+#include <QGraphicsDropShadowEffect>
+#include <QHBoxLayout>
+#include <QIcon>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QKeyEvent>
+#include <QMediaContent>
+#include <QMouseEvent>
+#include <QProgressBar>
+#include <QPropertyAnimation>
+#include <QSlider>
+#include <QUrlQuery>
 
-DouBanFM::DouBanFM(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::DouBanFM), m_paused(true), m_mouseMoving(false)
+DoubanFM::DoubanFM() :
+    lyricWindow(new LyricFrame),
+    channelWindow(new ChannelFrame),
+    manager(new QNetworkAccessManager)
 {
-    ui->setupUi(this);
-    ui->wgt_ctrlWidget->installEventFilter(this);
+    channelWindow->setNetworkAccessManager(manager);
+    lyricWindow->setNetworkAccessManager(manager);
 
-    m_popUpMenu.addAction(ui->act_selectChannel);
-    m_popUpMenu.addSeparator();
-    m_popUpMenu.addAction(ui->act_exit);
-    m_popUpMenu.addSeparator();
-    m_popUpMenu.addAction(ui->act_authorBlog);
+    picture = new ButtonLabel;
+    picture->setFixedWidth(245);
+    picture->installEventFilter(this);
+    picture->setStyleSheet("background-color:red;");
+    pause = new ButtonLabel;
+    pause->setNormalImage(QPixmap(":/images/resource/images/pause.png"));
+    like = new ButtonLabel;
+    like->setNormalImage(QPixmap(":/images/resource/images/like.png"));
+    like->setHoverImage(QPixmap(":/images/resource/images/like-hover.png"));
+    trash = new ButtonLabel;
+    trash->setNormalImage(QPixmap(":/images/resource/images/remove.png"));
+    trash->setHoverImage(QPixmap(":/images/resource/images/remove-hover.png"));
+    next = new ButtonLabel;
+    next->setNormalImage(QPixmap(":/images/resource/images/next.png"));
+    next->setHoverImage(QPixmap(":/images/resource/images/next-hover.png"));
+    volumeIcon = new ButtonLabel;
+    volumeIcon->setNormalImage(QPixmap(":/images/resource/images/audio.png"));
+    volumeIcon->setFixedHeight(10);
+    volumeIcon->installEventFilter(this);
+    layricTips = new ButtonLabel(picture);
+    layricTips->setText(tr("Click to show lyrics"));
+    layricTips->setVisible(false);
+    layricTips->setStyleSheet("QLabel {"
+                                "padding:4px 6px;"
+                                "background-color:rgba(66, 66, 66, .6);"
+                                "border-radius:4px;"
+                              "}");
 
-    connect(&m_player, SIGNAL(mediaChanged(QMediaContent)), this, SLOT(mediaPlayerMediaContentChanged(QMediaContent)));
-    connect(&m_player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)), this, SLOT(mediaPlayerMediaStatusChanged(QMediaPlayer::MediaStatus)));
-    connect(&m_player, SIGNAL(durationChanged(qint64)), this, SLOT(mediaPlayerDurationChanged(qint64)));
-    connect(&m_timerRefresh, SIGNAL(timeout()), this, SLOT(refresh()));
-    connect(ui->sld_volume, SIGNAL(valueChanged(int)), &m_player, SLOT(setVolume(int)));
-    connect(ui->btn_pause, SIGNAL(clicked()), this, SLOT(pause()));
-    connect(ui->btn_nextSong, SIGNAL(clicked()), this, SLOT(mediaPlayerNextSong()));
-    connect(ui->act_exit, SIGNAL(triggered()), this, SLOT(close()));
+    timeAxis = new QProgressBar();
+    timeAxis->setOrientation(Qt::Horizontal);
+    timeAxis->setFixedHeight(2);
+    timeAxis->setMinimum(0);
+    timeAxis->setStyleSheet("QProgressBar { \
+                                 background-color:#ddd; \
+                                 border:none; \
+                             } \
+                             QProgressBar::chunk { \
+                                 background-color:#9DD6C5; \
+                                 border:none; \
+                             }");
 
-    QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(this);
-    shadow->setBlurRadius(30.0);
-    shadow->setColor(Qt::black);
-    shadow->setOffset(0, 4);
+    volumeSlider = new QSlider;
+    volumeSlider->setOrientation(Qt::Horizontal);
+    volumeSlider->setFixedHeight(3);
+    volumeSlider->setMaximumWidth(0);
+    volumeSlider->installEventFilter(this);
+    volumeSlider->setStyleSheet("QSlider::handle:horizontal { \
+                                     background-color:transparent; \
+                                 } \
+                                 QSlider::sub-page { \
+                                     background-color:black; \
+                                 } \
+                                 QSlider::add-page { \
+                                     background-color:#ddd; \
+                                 }");
 
-    this->setGraphicsEffect(shadow);
-    this->setAttribute(Qt::WA_TranslucentBackground);
-    this->setWindowFlags(Qt::FramelessWindowHint);
-    this->pause();
+    volumeAnimation = new QPropertyAnimation(volumeSlider, "maximumWidth");
+
+    artist = new QLabel;
+    artist->setStyleSheet("font-size:24px;");
+    album = new QLabel;
+    album->setStyleSheet("font-size:13px;");
+    songName = new QLabel;
+    songName->setStyleSheet("font-size:15px;");
+    time = new QLabel;
+    time->setAlignment(Qt::AlignCenter);
+#ifdef QT_DEBUG
+    artist->setText("Artist");
+    album->setText("< Album >");
+    songName->setText("SongName");
+    time->setText("-0:00");
+#endif
+
+    refreshUITimer = new QTimer(this);
+    refreshUITimer->setInterval(1000);
+    refreshUITimer->start();
+    refreshLyricTimer = new QTimer(this);
+    refreshLyricTimer->setInterval(90);
+    refreshLyricTimer->start();
+
+    QHBoxLayout *centerCtrlLayout = new QHBoxLayout;
+    centerCtrlLayout->addStretch();
+    centerCtrlLayout->addWidget(time);
+    centerCtrlLayout->setAlignment(time, Qt::AlignVCenter);
+    centerCtrlLayout->addWidget(volumeIcon);
+    centerCtrlLayout->setAlignment(volumeIcon, Qt::AlignVCenter);
+    centerCtrlLayout->addWidget(volumeSlider);
+    centerCtrlLayout->setAlignment(volumeSlider, Qt::AlignVCenter);
+    centerCtrlLayout->setSpacing(5);
+    centerCtrlLayout->setMargin(0);
+
+    QHBoxLayout *bottomCtrlLayout = new QHBoxLayout;
+    bottomCtrlLayout->addStretch();
+    bottomCtrlLayout->addWidget(like);
+    bottomCtrlLayout->addWidget(trash);
+    bottomCtrlLayout->addWidget(next);
+    bottomCtrlLayout->setMargin(0);
+    bottomCtrlLayout->setSpacing(20);
+
+    QVBoxLayout *rightLayout = new QVBoxLayout;
+    rightLayout->addWidget(pause);
+    rightLayout->setAlignment(pause, Qt::AlignRight);
+    rightLayout->addWidget(artist);
+    rightLayout->addWidget(album);
+    rightLayout->addSpacing(15);
+    rightLayout->addWidget(songName);
+    rightLayout->addSpacing(3);
+    rightLayout->addWidget(timeAxis);
+    rightLayout->addLayout(centerCtrlLayout);
+    rightLayout->addSpacing(45);
+    rightLayout->addLayout(bottomCtrlLayout);
+    rightLayout->addStretch();
+    rightLayout->setSpacing(0);
+    rightLayout->setContentsMargins(15, 0, 15, 0);
+
+    QWidget *rightWidget = new QWidget;
+    rightWidget->setLayout(rightLayout);
+    rightWidget->setStyleSheet("background-color:white;");
+
+    QHBoxLayout *mainLayout = new QHBoxLayout;
+    mainLayout->addWidget(picture);
+    mainLayout->addWidget(rightWidget);
+    mainLayout->setSpacing(0);
+    mainLayout->setContentsMargins(30, 26, 30, 34);
+
+    QGraphicsDropShadowEffect *shadowEffect = new QGraphicsDropShadowEffect;
+    shadowEffect->setBlurRadius(30.0);
+    shadowEffect->setColor(Qt::black);
+    shadowEffect->setOffset(0, 4);
+
+    setLayout(mainLayout);
+    setFixedSize(570, 305);
+    setGraphicsEffect(shadowEffect);
+    setAttribute(Qt::WA_TranslucentBackground);
+    setWindowFlags(Qt::FramelessWindowHint);
+    setWindowTitle(tr("Douban FM"));
+    setWindowIcon(QIcon(":/images/resource/images/doubanFM.png"));
+    move(QApplication::desktop()->screen()->rect().center() - rect().center());
+
+    connect(layricTips, &ButtonLabel::clicked, picture, &ButtonLabel::clicked);
+    connect(picture, &ButtonLabel::clicked, this, &DoubanFM::toggleLayricsWindow);
+    connect(channelWindow, &ChannelFrame::ChannelSelected, this, &DoubanFM::channelChanged);
+    connect(&player, &QMediaPlayer::durationChanged, timeAxis, &QProgressBar::setMaximum);
+    connect(refreshUITimer, &QTimer::timeout, this, &DoubanFM::refreshTimeInfo);
+    connect(refreshUITimer, &QTimer::timeout, this, &DoubanFM::refreshLyricText);
+
+    toggleLayricsWindow();
+    channelWindow->loadChannelList();
 }
 
-DouBanFM::~DouBanFM()
+DoubanFM::~DoubanFM()
 {
-    delete ui;
 }
 
-bool DouBanFM::eventFilter(QObject *o, QEvent *e)
+void DoubanFM::mousePressEvent(QMouseEvent *e)
 {
-    if (o == ui->wgt_ctrlWidget && e->type() == QEvent::MouseButtonPress)
-    {
-        this->mousePressEvent(static_cast<QMouseEvent *>(e));
-        return true;
-    }
-
-    if (o == ui->wgt_ctrlWidget && e->type() == QEvent::MouseButtonRelease)
-    {
-        this->mouseReleaseEvent(static_cast<QMouseEvent *>(e));
-        return true;
-    }
-
-    if (o == ui->wgt_ctrlWidget && e->type() == QEvent::MouseMove)
-    {
-        this->mouseMoveEvent(static_cast<QMouseEvent *>(e));
-        return true;
-    }
-
-    return QMainWindow::eventFilter(o, e);
+    mousePressed = true;
+    mousePressPoint = e->pos();
 }
 
-void DouBanFM::mouseMoveEvent(QMouseEvent *e)
+void DoubanFM::mouseMoveEvent(QMouseEvent *e)
 {
-    if (m_mouseMoving && e->buttons() == Qt::LeftButton)
-    {
-        this->move(this->pos() + (QCursor::pos() - m_mouseLastPos));
-        m_mouseLastPos = QCursor::pos();
+    if (!mousePressed)
+        return;
 
-        return ;
-    }
-
-    QMainWindow::mouseMoveEvent(e);
+    move(e->pos() - mousePressPoint + pos());
 }
 
-void DouBanFM::mousePressEvent(QMouseEvent *e)
+void DoubanFM::mouseReleaseEvent(QMouseEvent *e)
 {
-    if (e->button() == Qt::LeftButton)
-    {
-        m_mouseMoving = true;
-        m_mouseLastPos = QCursor::pos();
+    Q_UNUSED(e)
 
-        return ;
-    }
-    else if (e->button() == Qt::RightButton)
-    {
-        m_popUpMenu.exec(QCursor::pos());
-
-        return ;
-    }
-
-    QMainWindow::mousePressEvent(e);
+    mousePressed = false;
 }
 
-void DouBanFM::mouseReleaseEvent(QMouseEvent *e)
+void DoubanFM::keyPressEvent(QKeyEvent *e)
 {
-    if (e->button() == Qt::LeftButton)
-    {
-        m_mouseMoving = false;
+    const int key = e->key();
 
-        return ;
+    switch (key) {
+    case Qt::Key_L:     toggleLayricsWindow();      break;
+    case Qt::Key_C:     toggleChannelsWindow();     break;
+    case Qt::Key_Escape:qApp->quit();               break;
+    default:;
     }
 
-    QMainWindow::mouseReleaseEvent(e);
+    activateWindow();
 }
 
-void DouBanFM::pause()
+void DoubanFM::moveEvent(QMoveEvent *e)
 {
-    m_paused = !m_paused;
-
-    if (m_paused)
-    {
-        m_timerRefresh.stop();
-        m_player.pause();
-    } else {
-        m_timerRefresh.start(1000);
-        this->mediaPlayerPlay();
-    }
+    channelWindow->move(e->pos() + channelWindowOffset);
 }
 
-void DouBanFM::refresh()
+bool DoubanFM::eventFilter(QObject *o, QEvent *e)
 {
-    if (!m_paused)
-    {
-        ui->pgs_timeLine->setValue(m_player.position() / 1000);
-        this->setTimeLeft();
+    if (o == volumeIcon && e->type() == QEvent::Enter)
+        showVolumeSlider();
+    else if (o == volumeSlider && e->type() == QEvent::Leave)
+        hideVolumeSlider();
+    else if (o == picture && e->type() == QEvent::Enter) {
+        layricTips->show();
+        layricTips->move(picture->rect().center() - layricTips->rect().center());
+    } else if (o == picture && e->type() == QEvent::Leave)
+        layricTips->hide();
 
-        if (m_songList.size() < 2)
-            this->loadMoreSong();
-    } else {
-
-    }
-
-    this->update();
+    return false;
 }
 
-void DouBanFM::loadMoreSong()
+void DoubanFM::showVolumeSlider()
 {
-    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-    QUrl url("http://douban.fm/j/mine/playlist?type=n&sid=&pt=0.0&channel=0&from=mainsite&r=1d85d147d5");
+    if (volumeAnimation->state() == QPropertyAnimation::Running ||
+        volumeSlider->width() != 0)
+        return;
 
-    manager->get(QNetworkRequest(url));
-
-    connect(manager, SIGNAL(finished(QNetworkReply *)), this, SLOT(loadMoreSong_finish(QNetworkReply *)));
+    volumeAnimation->setStartValue(0);
+    volumeAnimation->setEndValue(60);
+    volumeAnimation->start();
 }
 
-void DouBanFM::loadMoreSong_finish(QNetworkReply *reply)
+void DoubanFM::hideVolumeSlider()
 {
-    QString response = reply->readAll();
+    if (volumeAnimation->state() == QPropertyAnimation::Running ||
+        volumeSlider->width() == 0)
+        return;
 
-    QJsonDocument document = QJsonDocument::fromJson(response.toStdString().c_str());
+    volumeAnimation->setStartValue(60);
+    volumeAnimation->setEndValue(0);
+    volumeAnimation->start();
+}
 
-    if (!document.isObject() ||
-        !document.object().contains("song") ||
-        !document.object()["song"].isArray())
-        return ;
+void DoubanFM::toggleLayricsWindow()
+{
+    qDebug() << "toggle layrics";
+    lyricWindow->setVisible(!lyricWindow->isVisible());
 
-    QJsonArray songList(document.object()["song"].toArray());
+    if (!lyricWindow->isVisible())
+        return;
 
-    for (int i(0); i != songList.size(); ++i)
-    {
-        Song song(songList.at(i).toObject());
+    lyricWindow->move(200, 200);
+}
 
-        m_songList.append(song);
-    }
+void DoubanFM::toggleChannelsWindow()
+{
+    channelWindow->setVisible(!channelWindow->isVisible());
+}
 
+void DoubanFM::channelChanged(const Channel &channel)
+{
+    qDebug() << "select to channel: " << channel;
+
+    // clear old list
+    songList.clear();
+
+    // load new song list
+    loadSongList();
+}
+
+void DoubanFM::play()
+{
+    qDebug() << songList.first();
+    player.setMedia(QMediaContent(songList.first().url()));
+    player.play();
+
+    lyricWindow->loadLyric(songList.first());
+}
+
+void DoubanFM::refreshTimeInfo()
+{
+    const int duration = player.duration();
+    const int position = player.position();
+
+    timeAxis->setValue(position);
+    timeAxis->update();
+
+    const int timeLeft = (duration - position) / 1000;
+    time->setText(QString("-%1:%2")
+                  .arg(timeLeft / 60)
+                  .arg(timeLeft % 60, 2, 10, QLatin1Char('0')));
+}
+
+void DoubanFM::refreshLyricText()
+{
+    lyricWindow->refreshLyric(player.position());
+}
+
+void DoubanFM::loadSongList()
+{
+    QUrl url("http://www.douban.com/j/app/radio/people");
+    QUrlQuery query;
+    query.addQueryItem("app_name", "radio_desktop_win");
+    query.addQueryItem("version", "100");
+    query.addQueryItem("type", "n");
+    query.addQueryItem("channel", QString::number(channelWindow->channel().id()));
+    url.setQuery(query);
+    QNetworkReply *reply = manager->get(QNetworkRequest(url));
+
+    connect(reply, &QNetworkReply::finished, this, &DoubanFM::loadSongListFinish);
+}
+
+void DoubanFM::loadSongListFinish()
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
+    if (!reply)
+        return;
+
+    const QJsonDocument document = QJsonDocument::fromJson(reply->readAll());
     reply->deleteLater();
-    this->mediaPlayerPlay();
-}
+    if (!document.isObject())
+        return;
 
-void DouBanFM::setTimeLeft()
-{
-    if (m_player.state() != QMediaPlayer::PlayingState)
-    {
-        ui->lab_timeLeft->setText("-0:00");
-        return ;
+    const QJsonObject &obj = document.object();
+    const int stat = obj.value("r").toInt(-1);
+    if (stat) {
+        qWarning() << "error: " << obj;
+        return;
     }
 
-    int timeLeft(m_player.duration() - m_player.position());
-    timeLeft /= 1000;
+    const QJsonValue &value = obj.value("song");
+    if (!value.isArray())
+        return;
 
-    ui->lab_timeLeft->setText(QString("-%1:%2")
-                              .arg(timeLeft / 60)
-                              .arg(timeLeft % 60, 2, 10, QLatin1Char('0')));
-}
-
-void DouBanFM::loadSongPicture_finish(QNetworkReply *reply)
-{
-    QPixmap pixmap;
-    pixmap.loadFromData(reply->readAll());
-    pixmap = pixmap.scaled(245, 245, Qt::KeepAspectRatioByExpanding);
-    pixmap = pixmap.copy((pixmap.width() - 245) >> 1, (pixmap.height() - 245) >> 1, 245, 245);
-
-    ui->btn_songPicture->setIcon(QIcon(pixmap));
-}
-
-void DouBanFM::mediaPlayerDurationChanged(qint64 duration)
-{
-    ui->pgs_timeLine->setMaximum(duration / 1000);
-}
-
-void DouBanFM::mediaPlayerPlay()
-{
-    if (m_player.state() == QMediaPlayer::PlayingState)
-        return ;
-
-    if (m_player.state() == QMediaPlayer::PausedState)
-        m_player.play();
-
-    if (m_player.state() == QMediaPlayer::StoppedState)
-    {
-        if (m_songList.empty()) {
-            //std::cout << "m_songList is empty" << std::endl;
-            return ;
-        }
-
-        QUrl url(m_songList.at(0).url());
-        QMediaContent mediaContent(url);
-
-        m_player.setMedia(mediaContent);
-        m_player.play();
+    Song song;
+    const QJsonArray &list = value.toArray();
+    for (const QJsonValue &value : list) {
+        song.setData(value);
+        songList.append(song);
     }
-}
 
-void DouBanFM::mediaPlayerMediaStatusChanged(QMediaPlayer::MediaStatus status)
-{
-    if (status == QMediaPlayer::EndOfMedia)
-    {
-        this->mediaPlayerNextSong();
-    }
-}
-
-void DouBanFM::mediaPlayerMediaContentChanged(const QMediaContent &)
-{
-    const Song &song = m_songList.at(0);
-
-    ui->text_artist->setText(song.artist());
-    ui->text_albumTitle->setText(QString("< %1 > %2")
-                                 .arg(song.albumtitle())
-                                 .arg(song.public_time()));
-    ui->text_songName->setText(song.title());
-
-    // load song picture
-    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-    QUrl url(song.picture());
-
-    manager->get(QNetworkRequest(url));
-    connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(loadSongPicture_finish(QNetworkReply*)));
-}
-
-void DouBanFM::mediaPlayerNextSong()
-{
-    ui->pgs_timeLine->setValue(0);
-    ui->pgs_timeLine->setMaximum(0);
-    m_player.stop();
-
-    if (!m_songList.empty())
-        m_songList.erase(m_songList.begin());
-
-    this->mediaPlayerPlay();
+    play();
 }

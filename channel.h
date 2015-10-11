@@ -1,22 +1,28 @@
 #ifndef CHANNEL_H
 #define CHANNEL_H
 
-#include <QWidget>
+#include <QDebug>
+#include <QObject>
+#include <QJsonValue>
 
-namespace Ui {
-class Channel;
-}
-
-class Channel : public QWidget
+class Channel : public QObject
 {
     Q_OBJECT
-
 public:
-    explicit Channel(QWidget *parent = 0);
-    ~Channel();
+    explicit Channel(QObject *parent = 0);
+    Channel(const Channel &channel);
+
+    void operator=(const Channel &channel);
+
+    friend QDebug operator<<(QDebug debug, const Channel &channel);
+
+    int id() const;
+    int seq() const;
+    inline void setData(const QJsonValue &jsonObj) {data = jsonObj;}
+    inline QJsonValue jsonValue() const {return data;}
 
 private:
-    Ui::Channel *ui;
+    QJsonValue data;
 };
 
 #endif // CHANNEL_H

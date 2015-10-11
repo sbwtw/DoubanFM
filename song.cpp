@@ -1,36 +1,36 @@
 #include "song.h"
 
-Song::Song(const QJsonObject &json)
+#include <QJsonObject>
+
+Song::Song(QObject *parent) : QObject(parent)
 {
-    m_songInfo = json;
+
 }
 
-const QString Song::albumtitle() const
+Song::Song(const Song &song) : QObject()
 {
-    return m_songInfo["albumtitle"].toString();
+    *this = song;
 }
 
-const QString Song::url() const
+void Song::operator =(const Song &song)
 {
-    return m_songInfo["url"].toString();
+    data = song.getData();
 }
 
-const QString Song::picture() const
+const QString Song::getString(const QString &key) const
 {
-    return m_songInfo["picture"].toString();
+    if (!data.isObject())
+        return QString();
+
+    const QJsonObject &obj = data.toObject();
+    return obj.value(key).toString();
 }
 
-const QString Song::artist() const
+QDebug operator <<(QDebug debug, const Song &song)
 {
-    return m_songInfo["artist"].toString();
-}
+    const QJsonValue &data = song.getData();
 
-const QString Song::public_time() const
-{
-    return m_songInfo["public_time"].toString();
-}
+    debug << data;
 
-const QString Song::title() const
-{
-    return m_songInfo["title"].toString();
+    return debug;
 }

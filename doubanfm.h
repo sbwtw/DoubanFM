@@ -1,59 +1,90 @@
 #ifndef DOUBANFM_H
 #define DOUBANFM_H
 
+#include "buttonlabel.h"
+#include "lyricframe.h"
+#include "channelframe.h"
 #include "song.h"
 
-#include <QMainWindow>
-#include <QMediaPlayer>
-#include <QTimer>
+#include <QFrame>
+#include <QLabel>
 #include <QList>
+#include <QMediaPlayer>
 #include <QNetworkAccessManager>
+#include <QNetworkCookieJar>
 #include <QNetworkReply>
-#include <QPoint>
-#include <QMenu>
+#include <QNetworkRequest>
+#include <QProgressBar>
+#include <QPropertyAnimation>
+#include <QSlider>
+#include <QTimer>
 
-namespace Ui {
-class DouBanFM;
-}
+#include <memory>
 
-class DouBanFM : public QMainWindow
+class DoubanFM : public QFrame
 {
     Q_OBJECT
 
 public:
-    explicit DouBanFM(QWidget *parent = 0);
-    ~DouBanFM();
+    DoubanFM();
+    ~DoubanFM();
 
-protected:
-    bool eventFilter(QObject *o, QEvent *e);
-    void mouseMoveEvent(QMouseEvent *e);
-    void mousePressEvent(QMouseEvent *e);
-    void mouseReleaseEvent(QMouseEvent *e);
-
-public slots:
-    void pause();
-    void refresh();
-    void setTimeLeft();
-    void loadMoreSong();
-    void loadMoreSong_finish(QNetworkReply *reply);
-    void loadSongPicture_finish(QNetworkReply *reply);
-    void mediaPlayerDurationChanged(qint64 duration);
-    void mediaPlayerPlay();
-    void mediaPlayerMediaStatusChanged(QMediaPlayer::MediaStatus status);
-    void mediaPlayerMediaContentChanged(const QMediaContent &);
-    void mediaPlayerNextSong();
+    QTimer *getRefreshTimer() const;
+    void setRefreshTimer(QTimer *value);
 
 private:
-    Ui::DouBanFM *ui;
+    void mousePressEvent(QMouseEvent *e);
+    void mouseMoveEvent(QMouseEvent *e);
+    void mouseReleaseEvent(QMouseEvent *e);
+    void keyPressEvent(QKeyEvent *e);
+    void moveEvent(QMoveEvent *e);
+    bool eventFilter(QObject *o, QEvent *e);
 
-    QTimer m_timerRefresh;
-    QList<Song> m_songList;
-    QMediaPlayer m_player;
-    QMenu m_popUpMenu;
-    QPoint m_mouseLastPos;
+private slots:
+    void showVolumeSlider();
+    void hideVolumeSlider();
+    void toggleLayricsWindow();
+    void toggleChannelsWindow();
+    void channelChanged(const Channel &channel);
 
-    bool m_paused;
-    bool m_mouseMoving;
+    void play();
+
+    void refreshTimeInfo();
+    void refreshLyricText();
+
+    void loadSongList();
+    void loadSongListFinish();
+
+private:
+    bool mousePressed = false;
+    QPoint mousePressPoint;
+    QPoint channelWindowOffset = QPoint(530, 0);
+
+    ButtonLabel *picture;
+    ButtonLabel *pause;
+    ButtonLabel *like;
+    ButtonLabel *trash;
+    ButtonLabel *next;
+    ButtonLabel *volumeIcon;
+    ButtonLabel *layricTips;
+    QLabel *artist;
+    QLabel *album;
+    QLabel *songName;
+    QLabel *time;
+    QProgressBar *timeAxis;
+    QSlider *volumeSlider;
+
+    QList<Song> songList;
+    QMediaPlayer player;
+
+    QTimer *refreshUITimer;
+    QTimer *refreshLyricTimer;
+
+    LyricFrame *lyricWindow;
+    ChannelFrame *channelWindow;
+
+    QPropertyAnimation *volumeAnimation;
+    std::shared_ptr<QNetworkAccessManager> manager;
 };
 
 #endif // DOUBANFM_H
