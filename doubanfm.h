@@ -46,8 +46,10 @@ private slots:
     void toggleLayricsWindow();
     void toggleChannelsWindow();
     void channelChanged(const Channel &channel);
+    void playerStateChanged(const QMediaPlayer::MediaStatus stat);
 
     void play();
+    void nextSong();
 
     void refreshTimeInfo();
     void refreshLyricText();

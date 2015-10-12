@@ -25,6 +25,7 @@ class LyricFrame : public QFrame
 
 public:
     LyricFrame();
+    ~LyricFrame();
 
     inline void setNetworkAccessManager(const std::shared_ptr<QNetworkAccessManager> &namPtr) {manager = namPtr;}
     inline void setLayricAlignment(Qt::Alignment alignment) const
@@ -41,12 +42,13 @@ private:
     void leaveEvent(QEvent *e);
 
     void loadLyricFinish();
+    void setLyricText(const QString &text);
     void addLyricLine(const QString &times, const QString &text);
 
 private:
     std::shared_ptr<QNetworkAccessManager> manager;
 
-    int lyricOffset = 1000;
+    int lyricOffset = 500;
     int nextLyricPos = 0;
     bool mousePressed = false;
     QPoint mousePressPoint;

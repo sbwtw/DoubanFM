@@ -1,18 +1,18 @@
 #include "channelframe.h"
 #include "channel.h"
 
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QGraphicsDropShadowEffect>
-#include <QNetworkReply>
-#include <QNetworkRequest>
 #include <QJsonDocument>
 #include <QJsonValue>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QHBoxLayout>
+#include <QGraphicsDropShadowEffect>
+#include <QLabel>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 
 ChannelFrame::ChannelFrame(QWidget *parent) :
-    QFrame(parent)
+    QDialog(parent)
 {
     QGraphicsDropShadowEffect *shadowEffect = new QGraphicsDropShadowEffect;
     shadowEffect->setBlurRadius(30.0);
@@ -28,7 +28,7 @@ ChannelFrame::ChannelFrame(QWidget *parent) :
     setFixedSize(305, 305);
     setGraphicsEffect(shadowEffect);
     setAttribute(Qt::WA_TranslucentBackground);
-    setWindowFlags(Qt::FramelessWindowHint);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::X11BypassWindowManagerHint);
     setStyleSheet("background-color:red;");
 }
 

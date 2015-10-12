@@ -1,4 +1,5 @@
 #include "doubanfm.h"
+#include "logindialog.h"
 
 #include <QApplication>
 #include <QDebug>
@@ -169,8 +170,14 @@ DoubanFM::DoubanFM() :
     connect(picture, &ButtonLabel::clicked, this, &DoubanFM::toggleLayricsWindow);
     connect(channelWindow, &ChannelFrame::ChannelSelected, this, &DoubanFM::channelChanged);
     connect(&player, &QMediaPlayer::durationChanged, timeAxis, &QProgressBar::setMaximum);
+    connect(&player, &QMediaPlayer::mediaStatusChanged, this, &DoubanFM::playerStateChanged);
     connect(refreshUITimer, &QTimer::timeout, this, &DoubanFM::refreshTimeInfo);
     connect(refreshUITimer, &QTimer::timeout, this, &DoubanFM::refreshLyricText);
+    connect(next, &ButtonLabel::clicked, this, &DoubanFM::nextSong);
+
+//    LoginDialog *login = new LoginDialog(this);
+//    login->setModal(true);
+//    login->show();
 
     toggleLayricsWindow();
     channelWindow->loadChannelList();
@@ -178,6 +185,8 @@ DoubanFM::DoubanFM() :
 
 DoubanFM::~DoubanFM()
 {
+    delete lyricWindow;
+    delete channelWindow;
 }
 
 void DoubanFM::mousePressEvent(QMouseEvent *e)
@@ -264,8 +273,6 @@ void DoubanFM::toggleLayricsWindow()
 
     if (!lyricWindow->isVisible())
         return;
-
-    lyricWindow->move(200, 200);
 }
 
 void DoubanFM::toggleChannelsWindow()
@@ -284,6 +291,15 @@ void DoubanFM::channelChanged(const Channel &channel)
     loadSongList();
 }
 
+void DoubanFM::playerStateChanged(const QMediaPlayer::MediaStatus stat)
+{
+    switch (stat)
+    {
+    case QMediaPlayer::EndOfMedia:      nextSong();             break;
+    default:;
+    }
+}
+
 void DoubanFM::play()
 {
     qDebug() << songList.first();
@@ -291,6 +307,17 @@ void DoubanFM::play()
     player.play();
 
     lyricWindow->loadLyric(songList.first());
+}
+
+void DoubanFM::nextSong()
+{
+    player.stop();
+    songList.pop_front();
+
+    if (songList.isEmpty())
+        loadSongList();
+    else
+        play();
 }
 
 void DoubanFM::refreshTimeInfo()

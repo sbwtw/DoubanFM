@@ -1,4 +1,5 @@
 #include "lyricframe.h"
+#include "constants.h"
 
 #include <QMoveEvent>
 #include <QHBoxLayout>
@@ -10,11 +11,15 @@
 #include <QNetworkRequest>
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
+#include <QSettings>
+
+using DouBanFM::APP_NAME;
+
+static const QString CFG_NAME = QString("LyricWindow");
 
 LyricFrame::LyricFrame() : QFrame(0)
 {
     layric = new QLabel;
-    layric->setText("Layric");
     layric->setStyleSheet("QLabel {"
                           "font-size:24px;"
                           "color:#a42727;"
@@ -34,18 +39,29 @@ LyricFrame::LyricFrame() : QFrame(0)
     opacityEffect = new QGraphicsOpacityEffect(this);
     opacityEffect->setOpacity(1);
 
+    QSettings setting(APP_NAME, CFG_NAME, this);
+    QPoint position = setting.value("position").toPoint();
+    move(position);
+
     setLayout(mainLayout);
     setFixedSize(550, 50);
+    setLyricText("Lyric");
     setGraphicsEffect(opacityEffect);
     setAttribute(Qt::WA_TranslucentBackground);
     setWindowFlags(Qt::X11BypassWindowManagerHint | Qt::WindowStaysOnTopHint);
+}
+
+LyricFrame::~LyricFrame()
+{
+    QSettings setting(APP_NAME, CFG_NAME, this);
+    setting.setValue("position", pos());
 }
 
 void LyricFrame::loadLyric(const Song &song)
 {
     lyricsList.clear();
     nextLyricPos = 0;
-    layric->setText(song.title() + " - " + song.artist());
+    setLyricText(song.title() + " - " + song.artist());
 
     QUrl url("http://api.douban.com/v2/fm/lyric");
     QUrlQuery query;
@@ -63,7 +79,7 @@ void LyricFrame::refreshLyric(qint64 msec)
         return;
 
     if (lyricsList.at(nextLyricPos).start <= msec + lyricOffset) {
-        layric->setText(lyricsList.at(nextLyricPos).text);
+        setLyricText(lyricsList.at(nextLyricPos).text);
         ++nextLyricPos;
     }
 }
@@ -144,9 +160,17 @@ void LyricFrame::loadLyricFinish()
         qDebug() << lyric.start << lyric.text;
 }
 
+void LyricFrame::setLyricText(const QString &text)
+{
+    layric->setText(text);
+
+    QFontMetrics fm(layric->font());
+    setFixedWidth(fm.width(text));
+}
+
 void LyricFrame::addLyricLine(const QString &times, const QString &text)
 {
-    QRegularExpression re("\\[(\\d+):(\\d+)\\.(\\d+)?\\]");
+    QRegularExpression re("\\[(\\d+):(\\d+)(?:\\.(\\d+))?\\]");
     QRegularExpressionMatch match;
     int pos = 0;
     do {

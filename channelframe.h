@@ -4,12 +4,12 @@
 #include "channel.h"
 
 #include <QList>
-#include <QFrame>
+#include <QDialog>
 #include <QNetworkAccessManager>
 
 #include <memory>
 
-class ChannelFrame : public QFrame
+class ChannelFrame : public QDialog
 {
     Q_OBJECT
 
