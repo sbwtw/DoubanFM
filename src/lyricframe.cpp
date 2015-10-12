@@ -129,6 +129,7 @@ void LyricFrame::loadLyricFinish()
     reply->deleteLater();
     if (!document.isObject())
         return;
+    lyricsList.clear();
 
     const QJsonObject &obj = document.object();
     const QString &lyric = obj.value("lyric").toString();

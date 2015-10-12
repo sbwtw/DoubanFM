@@ -30,7 +30,7 @@ DoubanFM::DoubanFM() :
     picture = new ButtonLabel;
     picture->setFixedWidth(245);
     picture->installEventFilter(this);
-    picture->setStyleSheet("background-color:red;");
+    picture->setStyleSheet("background-color:white;");
     pause = new ButtonLabel;
     pause->setNormalImage(QPixmap(":/images/resource/images/pause.png"));
     like = new ButtonLabel;
@@ -302,17 +302,25 @@ void DoubanFM::playerStateChanged(const QMediaPlayer::MediaStatus stat)
 
 void DoubanFM::play()
 {
-    qDebug() << songList.first();
-    player.setMedia(QMediaContent(songList.first().url()));
+    const Song &song = songList.first();
+    qDebug() << song;
+
+    player.setMedia(QMediaContent(song.url()));
     player.play();
 
-    lyricWindow->loadLyric(songList.first());
+    loadSongPicture(song);
+    lyricWindow->loadLyric(song);
+
+    artist->setText(song.artist());
+    album->setText(QString("< %1 >").arg(song.albumtitle()));
+    songName->setText(song.title());
 }
 
 void DoubanFM::nextSong()
 {
     player.stop();
-    songList.pop_front();
+    if (!songList.isEmpty())
+        songList.pop_front();
 
     if (songList.isEmpty())
         loadSongList();
@@ -383,4 +391,29 @@ void DoubanFM::loadSongListFinish()
     }
 
     play();
+}
+
+void DoubanFM::loadSongPicture(const Song &song)
+{
+    QUrl url(song.picture());
+    QNetworkReply *reply = manager->get(QNetworkRequest(url));
+
+    connect(reply, &QNetworkReply::finished, this, &DoubanFM::loadSongPictureFinish);
+}
+
+void DoubanFM::loadSongPictureFinish()
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
+    if (!reply)
+        return;
+
+    QPixmap pixmap;
+    pixmap.loadFromData(reply->readAll());
+    reply->deleteLater();
+
+    const int width = picture->width();
+    pixmap = pixmap.scaled(width, width, Qt::KeepAspectRatioByExpanding);
+    pixmap = pixmap.copy((pixmap.width() - width) / 2, (pixmap.height() - width) / 2, width, width);
+
+    picture->setPixmap(pixmap);
 }

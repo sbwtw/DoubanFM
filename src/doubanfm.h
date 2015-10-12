@@ -56,6 +56,8 @@ private slots:
 
     void loadSongList();
     void loadSongListFinish();
+    void loadSongPicture(const Song &song);
+    void loadSongPictureFinish();
 
 private:
     bool mousePressed = false;
