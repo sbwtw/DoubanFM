@@ -12,6 +12,11 @@
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
 #include <QSettings>
+#include <QX11Info>
+#include <QRegion>
+
+#include <X11/extensions/shape.h>
+#include <X11/Xregion.h>
 
 using DouBanFM::APP_NAME;
 
@@ -30,11 +35,11 @@ LyricFrame::LyricFrame() : QFrame(0)
     mainLayout->setSpacing(0);
     mainLayout->setMargin(0);
 
-//    shadowEffect = new QGraphicsDropShadowEffect(layric);
-//    shadowEffect->setBlurRadius(10);
-//    shadowEffect->setOffset(0, 0);
-//    shadowEffect->setColor(Qt::cyan);
-//    layric->setGraphicsEffect(shadowEffect);
+    shadowEffect = new QGraphicsDropShadowEffect(layric);
+    shadowEffect->setBlurRadius(8);
+    shadowEffect->setOffset(0, 1);
+    shadowEffect->setColor(Qt::white);
+    layric->setGraphicsEffect(shadowEffect);
 
     opacityEffect = new QGraphicsOpacityEffect(this);
     opacityEffect->setOpacity(1);
@@ -46,9 +51,13 @@ LyricFrame::LyricFrame() : QFrame(0)
     setLayout(mainLayout);
     setFixedSize(550, 50);
     setLyricText("Lyric");
-    setGraphicsEffect(opacityEffect);
+//    setGraphicsEffect(opacityEffect);
     setAttribute(Qt::WA_TranslucentBackground);
     setWindowFlags(Qt::X11BypassWindowManagerHint | Qt::WindowStaysOnTopHint);
+
+    _XRegion region;
+    XShapeCombineRegion(QX11Info::display(), winId(), ShapeInput, 0, 0,&region, ShapeSet);
+//    XShapeCombineRectangles(QX11Info::display(), winId(), ShapeInput, 0, 0, nullptr, 0, ShapeSet, YXBanded);
 }
 
 LyricFrame::~LyricFrame()
@@ -135,7 +144,7 @@ void LyricFrame::loadLyricFinish()
     const QString &lyric = obj.value("lyric").toString();
 
     if (lyric.isEmpty())
-        qDebug() << "lyric is empty";
+        qDebug() << "lyric is empty" << obj;
     qDebug() << lyric;
 
     QRegularExpression re("((?:\\[[\\d\\.:]+\\])+)(.*?)(?=[$\\r])");

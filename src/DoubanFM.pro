@@ -1,4 +1,4 @@
-QT       += core gui multimedia network
+QT       += core gui multimedia network x11extras
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -27,3 +27,5 @@ HEADERS  += \
 
 RESOURCES += \
     resource.qrc
+
+LIBS += -lXext

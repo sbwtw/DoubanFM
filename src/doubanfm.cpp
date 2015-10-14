@@ -47,9 +47,10 @@ DoubanFM::DoubanFM() :
     volumeIcon->setFixedHeight(10);
     volumeIcon->installEventFilter(this);
     layricTips = new ButtonLabel(picture);
-    layricTips->setText(tr("Click to show lyrics"));
+    layricTips->setText(tr("Click to toggle lyrics"));
     layricTips->setVisible(false);
     layricTips->setStyleSheet("QLabel {"
+                                "color:white;"
                                 "padding:4px 6px;"
                                 "background-color:rgba(66, 66, 66, .6);"
                                 "border-radius:4px;"
