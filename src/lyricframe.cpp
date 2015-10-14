@@ -18,6 +18,8 @@
 #include <X11/extensions/shape.h>
 #include <X11/Xregion.h>
 
+#include <cstring>
+
 using DouBanFM::APP_NAME;
 
 static const QString CFG_NAME = QString("LyricWindow");
@@ -56,7 +58,8 @@ LyricFrame::LyricFrame() : QFrame(0)
     setWindowFlags(Qt::X11BypassWindowManagerHint | Qt::WindowStaysOnTopHint);
 
     _XRegion region;
-    XShapeCombineRegion(QX11Info::display(), winId(), ShapeInput, 0, 0,&region, ShapeSet);
+    memset(&region, 0, sizeof(_XRegion));
+    XShapeCombineRegion(QX11Info::display(), winId(), ShapeInput, 0, 0, &region, ShapeSet);
 //    XShapeCombineRectangles(QX11Info::display(), winId(), ShapeInput, 0, 0, nullptr, 0, ShapeSet, YXBanded);
 }
 

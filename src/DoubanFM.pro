@@ -29,3 +29,10 @@ RESOURCES += \
     resource.qrc
 
 LIBS += -lXext
+
+DESTDIR = $$_PRO_FILE_PWD_
+
+Executable.path = /usr/bin
+Executable.files = DoubanFM
+
+INSTALLS = Executable
