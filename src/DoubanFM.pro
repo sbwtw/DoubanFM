@@ -5,6 +5,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = DoubanFM
 TEMPLATE = app
 CONFIG += c++11
+LIBS += -lXext
 
 SOURCES += main.cpp \
     doubanfm.cpp \
@@ -28,11 +29,14 @@ HEADERS  += \
 RESOURCES += \
     resource.qrc
 
-LIBS += -lXext
-
 DESTDIR = $$_PRO_FILE_PWD_
 
 Executable.path = /usr/bin
 Executable.files = DoubanFM
 
 INSTALLS = Executable
+
+CONFIG(debug, debug|release) {
+} else {
+    DEFINES += QT_NO_DEBUG_OUTPUT
+}
