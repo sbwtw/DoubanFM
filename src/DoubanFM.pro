@@ -5,7 +5,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = DoubanFM
 TEMPLATE = app
 CONFIG += c++11
-LIBS += -lXext
+LIBS += -lXext -lX11
 
 SOURCES += main.cpp \
     doubanfm.cpp \

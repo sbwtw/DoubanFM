@@ -16,7 +16,6 @@
 #include <QMouseEvent>
 #include <QProgressBar>
 #include <QPropertyAnimation>
-#include <QSlider>
 #include <QUrlQuery>
 
 DoubanFM::DoubanFM() :
@@ -103,10 +102,14 @@ DoubanFM::DoubanFM() :
 
     refreshUITimer = new QTimer(this);
     refreshUITimer->setInterval(1000);
-    refreshUITimer->start();
     refreshLyricTimer = new QTimer(this);
-    refreshLyricTimer->setInterval(90);
-    refreshLyricTimer->start();
+    refreshLyricTimer->setInterval(100);
+    quitOrHideTimer = new QTimer(this);
+    quitOrHideTimer->setInterval(200);
+    quitOrHideTimer->setSingleShot(true);
+
+    systemTray.setIcon(QIcon(":/images/resource/images/doubanFM.png"));
+//    systemTray.show();
 
     QHBoxLayout *centerCtrlLayout = new QHBoxLayout;
     centerCtrlLayout->addStretch();
@@ -173,21 +176,33 @@ DoubanFM::DoubanFM() :
     connect(&player, &QMediaPlayer::durationChanged, timeAxis, &QProgressBar::setMaximum);
     connect(&player, &QMediaPlayer::mediaStatusChanged, this, &DoubanFM::playerStateChanged);
     connect(refreshUITimer, &QTimer::timeout, this, &DoubanFM::refreshTimeInfo);
-    connect(refreshUITimer, &QTimer::timeout, this, &DoubanFM::refreshLyricText);
+    connect(refreshLyricTimer, &QTimer::timeout, this, &DoubanFM::refreshLyricText);
     connect(next, &ButtonLabel::clicked, this, &DoubanFM::nextSong);
+    connect(pause, &ButtonLabel::clicked, this, &DoubanFM::pauseSong);
+    connect(quitOrHideTimer, &QTimer::timeout, this, &DoubanFM::hide);
+    connect(&systemTray, &QSystemTrayIcon::activated, this, &DoubanFM::systemTrayActivated);
 
-//    LoginDialog *login = new LoginDialog(this);
-//    login->setModal(true);
-//    login->show();
+    LoginDialog *login = new LoginDialog(this);
+    login->setModal(true);
+    login->show();
 
     toggleLayricsWindow();
     channelWindow->loadChannelList();
+
+    refreshUITimer->start();
+    refreshLyricTimer->start();
 }
 
 DoubanFM::~DoubanFM()
 {
     delete lyricWindow;
     delete channelWindow;
+}
+
+void DoubanFM::show()
+{
+    systemTray.hide();
+    QFrame::show();
 }
 
 void DoubanFM::mousePressEvent(QMouseEvent *e)
@@ -216,9 +231,10 @@ void DoubanFM::keyPressEvent(QKeyEvent *e)
     const int key = e->key();
 
     switch (key) {
-    case Qt::Key_L:     toggleLayricsWindow();      break;
-    case Qt::Key_C:     toggleChannelsWindow();     break;
-    case Qt::Key_Escape:qApp->quit();               break;
+    case Qt::Key_L:     toggleLayricsWindow();                      break;
+    case Qt::Key_C:     toggleChannelsWindow();                     break;
+    case Qt::Key_W:     lyricWindow->toggleWindowPassEvent();       break;
+    case Qt::Key_Escape:quitOrHide();                               break;
     default:;
     }
 
@@ -301,6 +317,35 @@ void DoubanFM::playerStateChanged(const QMediaPlayer::MediaStatus stat)
     }
 }
 
+void DoubanFM::quit()
+{
+    qApp->quit();
+}
+
+void DoubanFM::quitOrHide()
+{
+    if (quitOrHideTimer->isActive()) {
+        quit();
+    } else {
+        quitOrHideTimer->start();
+    }
+}
+
+void DoubanFM::hide()
+{
+    systemTray.show();
+    QFrame::hide();
+}
+
+void DoubanFM::systemTrayActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    switch (reason) {
+    case QSystemTrayIcon::DoubleClick:  show();                     break;
+    case QSystemTrayIcon::MiddleClick:  quit();                     break;
+    default:;
+    }
+}
+
 void DoubanFM::play()
 {
     const Song &song = songList.first();
@@ -327,6 +372,21 @@ void DoubanFM::nextSong()
         loadSongList();
     else
         play();
+}
+
+void DoubanFM::pauseSong()
+{
+    if (player.state() == QMediaPlayer::PlayingState) {
+        player.pause();
+        refreshLyricTimer->stop();
+        refreshUITimer->stop();
+    } else if (player.state() == QMediaPlayer::PausedState) {
+        player.play();
+        refreshLyricTimer->start();
+        refreshUITimer->start();
+    }
+
+    refreshTimeInfo();
 }
 
 void DoubanFM::refreshTimeInfo()

@@ -33,6 +33,7 @@ public:
 
     void loadLyric(const Song &song);
     void refreshLyric(qint64 msec);
+    void toggleWindowPassEvent();
 
 private:
     void mousePressEvent(QMouseEvent *e);
@@ -51,6 +52,7 @@ private:
     int lyricOffset = 500;
     int nextLyricPos = 0;
     bool mousePressed = false;
+    bool passX11Event = false;
     QPoint mousePressPoint;
 
     QLabel *layric;

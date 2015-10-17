@@ -57,10 +57,7 @@ LyricFrame::LyricFrame() : QFrame(0)
     setAttribute(Qt::WA_TranslucentBackground);
     setWindowFlags(Qt::X11BypassWindowManagerHint | Qt::WindowStaysOnTopHint);
 
-    _XRegion region;
-    memset(&region, 0, sizeof(_XRegion));
-    XShapeCombineRegion(QX11Info::display(), winId(), ShapeInput, 0, 0, &region, ShapeSet);
-//    XShapeCombineRectangles(QX11Info::display(), winId(), ShapeInput, 0, 0, nullptr, 0, ShapeSet, YXBanded);
+    toggleWindowPassEvent();
 }
 
 LyricFrame::~LyricFrame()
@@ -96,6 +93,27 @@ void LyricFrame::refreshLyric(qint64 msec)
     }
 }
 
+void LyricFrame::toggleWindowPassEvent()
+{
+    passX11Event = !passX11Event;
+
+    if (passX11Event) {
+//        _XRegion region;
+//        memset(&region, 0, sizeof(_XRegion));
+//        XShapeCombineRegion(QX11Info::display(), winId(), ShapeInput, 0, 0, &region, ShapeSet);
+
+        XShapeCombineRectangles(QX11Info::display(), winId(), ShapeInput, 0, 0, nullptr, 0, ShapeSet, YXBanded);
+    } else {
+        XRectangle rectangle;
+        rectangle.x = 0;
+        rectangle.y = 0;
+        rectangle.width = width();
+        rectangle.height = height();
+
+        XShapeCombineRectangles(QX11Info::display(), winId(), ShapeInput, 0, 0, &rectangle, 1, ShapeSet, YXBanded);
+    }
+}
+
 void LyricFrame::mousePressEvent(QMouseEvent *e)
 {
     mousePressPoint = e->pos();
@@ -107,6 +125,7 @@ void LyricFrame::mouseReleaseEvent(QMouseEvent *e)
     Q_UNUSED(e)
 
     mousePressed = false;
+    toggleWindowPassEvent();
 }
 
 void LyricFrame::mouseMoveEvent(QMouseEvent *e)
@@ -175,6 +194,9 @@ void LyricFrame::loadLyricFinish()
 
 void LyricFrame::setLyricText(const QString &text)
 {
+    if (text.isEmpty())
+        return;
+
     layric->setText(text);
 
     QFontMetrics fm(layric->font());

@@ -17,6 +17,7 @@
 #include <QProgressBar>
 #include <QPropertyAnimation>
 #include <QSlider>
+#include <QSystemTrayIcon>
 #include <QTimer>
 
 #include <memory>
@@ -29,8 +30,7 @@ public:
     DoubanFM();
     ~DoubanFM();
 
-    QTimer *getRefreshTimer() const;
-    void setRefreshTimer(QTimer *value);
+    void show();
 
 private:
     void mousePressEvent(QMouseEvent *e);
@@ -48,8 +48,14 @@ private slots:
     void channelChanged(const Channel &channel);
     void playerStateChanged(const QMediaPlayer::MediaStatus stat);
 
+    void quit();
+    void quitOrHide();
+    void hide();
+    void systemTrayActivated(QSystemTrayIcon::ActivationReason reason);
+
     void play();
     void nextSong();
+    void pauseSong();
 
     void refreshTimeInfo();
     void refreshLyricText();
@@ -63,6 +69,7 @@ private:
     bool mousePressed = false;
     QPoint mousePressPoint;
     QPoint channelWindowOffset = QPoint(530, 0);
+    QSystemTrayIcon systemTray;
 
     ButtonLabel *picture;
     ButtonLabel *pause;
@@ -83,6 +90,7 @@ private:
 
     QTimer *refreshUITimer;
     QTimer *refreshLyricTimer;
+    QTimer *quitOrHideTimer;
 
     LyricFrame *lyricWindow;
     ChannelFrame *channelWindow;

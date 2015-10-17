@@ -19,7 +19,7 @@ private:
     QLineEdit *passwordEdit;
     QCheckBox *autoLoginCheck;
     QPushButton *acceptBtn;
-    QPushButton *calcelBtn;
+    QPushButton *cancelBtn;
 };
 
 #endif // LOGINDIALOG_H

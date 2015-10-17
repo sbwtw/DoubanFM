@@ -12,7 +12,7 @@ LoginDialog::LoginDialog(QWidget *parent) :
     autoLoginCheck = new QCheckBox(tr("Auto login"));
     autoLoginCheck->setChecked(true);
     acceptBtn = new QPushButton(tr("Ok"));
-    calcelBtn = new QPushButton(tr("Cancel"));
+    cancelBtn = new QPushButton(tr("Cancel"));
 
     QGridLayout *topGrid = new QGridLayout;
     topGrid->addWidget(usernameLabel, 0, 0);
@@ -23,13 +23,15 @@ LoginDialog::LoginDialog(QWidget *parent) :
 
     QHBoxLayout *btnsLayout = new QHBoxLayout;
     btnsLayout->addWidget(acceptBtn);
-    btnsLayout->addWidget(calcelBtn);
+    btnsLayout->addWidget(cancelBtn);
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
     mainLayout->addStretch();
     mainLayout->addLayout(topGrid);
     mainLayout->addLayout(btnsLayout);
     mainLayout->addStretch();
+
+    connect(cancelBtn, &QPushButton::clicked, this, &LoginDialog::accept);
 
     setLayout(mainLayout);
 }
