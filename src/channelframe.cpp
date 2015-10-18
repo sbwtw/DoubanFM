@@ -1,5 +1,4 @@
 #include "channelframe.h"
-#include "channel.h"
 
 #include <QJsonDocument>
 #include <QJsonValue>

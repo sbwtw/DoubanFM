@@ -16,6 +16,7 @@
 #include <QMouseEvent>
 #include <QProgressBar>
 #include <QPropertyAnimation>
+#include <QSettings>
 #include <QUrlQuery>
 
 DoubanFM::DoubanFM() :
@@ -72,6 +73,9 @@ DoubanFM::DoubanFM() :
     volumeSlider->setOrientation(Qt::Horizontal);
     volumeSlider->setFixedHeight(3);
     volumeSlider->setMaximumWidth(0);
+    volumeSlider->setMinimum(0);
+    volumeSlider->setMaximum(100);
+    volumeSlider->setValue(player.volume());
     volumeSlider->installEventFilter(this);
     volumeSlider->setStyleSheet("QSlider::handle:horizontal { \
                                      background-color:transparent; \
@@ -170,6 +174,9 @@ DoubanFM::DoubanFM() :
     setWindowIcon(QIcon(":/images/resource/images/doubanFM.png"));
     move(QApplication::desktop()->screen()->rect().center() - rect().center());
 
+    LoginDialog *loginDialog = new LoginDialog(this);
+    loginDialog->show();
+
     connect(layricTips, &ButtonLabel::clicked, picture, &ButtonLabel::clicked);
     connect(picture, &ButtonLabel::clicked, this, &DoubanFM::toggleLayricsWindow);
     connect(channelWindow, &ChannelFrame::ChannelSelected, this, &DoubanFM::channelChanged);
@@ -181,10 +188,9 @@ DoubanFM::DoubanFM() :
     connect(pause, &ButtonLabel::clicked, this, &DoubanFM::pauseSong);
     connect(quitOrHideTimer, &QTimer::timeout, this, &DoubanFM::hide);
     connect(&systemTray, &QSystemTrayIcon::activated, this, &DoubanFM::systemTrayActivated);
-
-    LoginDialog *login = new LoginDialog(this);
-    login->setModal(true);
-    login->show();
+    connect(volumeSlider, &QSlider::valueChanged, &player, &QMediaPlayer::setVolume);
+    connect(loginDialog, &LoginDialog::login, this,&DoubanFM::loginRequest);
+    connect(loginDialog, &LoginDialog::login, loginDialog, &LoginDialog::deleteLater);
 
     toggleLayricsWindow();
     channelWindow->loadChannelList();
@@ -302,6 +308,7 @@ void DoubanFM::channelChanged(const Channel &channel)
     qDebug() << "select to channel: " << channel;
 
     // clear old list
+    player.stop();
     songList.clear();
 
     // load new song list
@@ -346,10 +353,57 @@ void DoubanFM::systemTrayActivated(QSystemTrayIcon::ActivationReason reason)
     }
 }
 
+void DoubanFM::loginRequest(const QString &username, const QString &password)
+{
+    qDebug() << "login: " << username << password;
+    QUrl url("http://www.douban.com/j/app/login");
+    QUrlQuery query;
+    query.addQueryItem("app_name", "radio_desktop_win");
+    query.addQueryItem("version", "100");
+    query.addQueryItem("email", username);
+    query.addQueryItem("password", password);
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+
+    QNetworkReply *reply = manager->post(request, query.toString().toStdString().c_str());
+
+    connect(reply, &QNetworkReply::finished, this, &DoubanFM::loginRequestFinish);
+}
+
+void DoubanFM::loginRequestFinish()
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
+    if (!reply)
+        return;
+
+    const QJsonDocument document = QJsonDocument::fromJson(reply->readAll());
+    reply->deleteLater();
+    if (!document.isObject())
+        return;
+
+    const QJsonObject &obj = document.object();
+    const int stat = obj.value("r").toInt(-1);
+    if (stat) {
+        qWarning() << "error: " << obj;
+        return;
+    }
+
+    user.setData(obj);
+    // reload channel
+    channelChanged(channelWindow->channel());
+}
+
 void DoubanFM::play()
 {
+    if (songList.isEmpty()) {
+        qDebug() << "songlist empty!!!";
+        loadSongList();
+        return;
+    }
+
     const Song &song = songList.first();
-    qDebug() << song;
+//    qDebug() << song;
 
     player.setMedia(QMediaContent(song.url()));
     player.play();
@@ -414,11 +468,16 @@ void DoubanFM::loadSongList()
     QUrlQuery query;
     query.addQueryItem("app_name", "radio_desktop_win");
     query.addQueryItem("version", "100");
-    query.addQueryItem("type", "n");
+    query.addQueryItem("user_id", user.user_id());
+    query.addQueryItem("expire", user.expire());
+    query.addQueryItem("token", user.token());
     query.addQueryItem("channel", QString::number(channelWindow->channel().id()));
+//    query.addQueryItem("channel", user.isLogined() ? "-3" : "0");
+    query.addQueryItem("type", "n");
     url.setQuery(query);
     QNetworkReply *reply = manager->get(QNetworkRequest(url));
 
+    qDebug() << query.toString();
     connect(reply, &QNetworkReply::finished, this, &DoubanFM::loadSongListFinish);
 }
 
@@ -439,6 +498,8 @@ void DoubanFM::loadSongListFinish()
         qWarning() << "error: " << obj;
         return;
     }
+
+    qDebug() << obj;
 
     const QJsonValue &value = obj.value("song");
     if (!value.isArray())

@@ -14,7 +14,8 @@ SOURCES += main.cpp \
     channel.cpp \
     channelframe.cpp \
     lyricframe.cpp \
-    logindialog.cpp
+    logindialog.cpp \
+    user.cpp
 
 HEADERS  += \
     doubanfm.h \
@@ -24,7 +25,8 @@ HEADERS  += \
     channelframe.h \
     lyricframe.h \
     constants.h \
-    logindialog.h
+    logindialog.h \
+    user.h
 
 RESOURCES += \
     resource.qrc

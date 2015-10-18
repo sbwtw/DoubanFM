@@ -5,6 +5,7 @@
 #include "lyricframe.h"
 #include "channelframe.h"
 #include "song.h"
+#include "user.h"
 
 #include <QFrame>
 #include <QLabel>
@@ -52,6 +53,8 @@ private slots:
     void quitOrHide();
     void hide();
     void systemTrayActivated(QSystemTrayIcon::ActivationReason reason);
+    void loginRequest(const QString &username, const QString &password);
+    void loginRequestFinish();
 
     void play();
     void nextSong();
@@ -87,6 +90,8 @@ private:
 
     QList<Song> songList;
     QMediaPlayer player;
+
+    User user;
 
     QTimer *refreshUITimer;
     QTimer *refreshLyricTimer;
