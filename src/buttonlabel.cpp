@@ -1,11 +1,25 @@
 #include "buttonlabel.h"
 
 #include <QMouseEvent>
+#include <QDebug>
 
 ButtonLabel::ButtonLabel(QWidget *parent) :
     QLabel(parent)
 {
     connect(this, &ButtonLabel::stateChanged, this, &ButtonLabel::setShownImage);
+}
+
+void ButtonLabel::setChecked(bool stat)
+{
+    if (checked() == stat)
+        return;
+
+    if (stat)
+        state = Checked;
+    else
+        state = Normal;
+
+    emit stateChanged(state);
 }
 
 void ButtonLabel::mouseReleaseEvent(QMouseEvent *e)
@@ -21,7 +35,11 @@ void ButtonLabel::mouseReleaseEvent(QMouseEvent *e)
         return;
     }
 
-    state = Hover;
+    if (m_checkable && state == Press)
+        state = Checked;
+    else
+        state = Hover;
+
     emit stateChanged(state);
     emit clicked();
 }

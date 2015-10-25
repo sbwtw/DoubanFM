@@ -19,6 +19,9 @@ public:
     inline void setData(const QJsonValue &jsonObj) {data = jsonObj;}
     inline QJsonValue getData() const {return data;}
 
+    void setLikeState(bool liked);
+
+    inline bool like() const {return getInt("like") == 1;}
     inline const QString aid() const {return getString("aid");}
     inline const QString album() const {return getString("album");}
     inline const QString albumtitle() const {return getString("albumtitle");}
@@ -31,6 +34,7 @@ public:
     inline const QString url() const {return getString("url");}
 
 private:
+    int getInt(const QString &key, const int def = -1) const;
     const QString getString(const QString &key) const;
 
 private:

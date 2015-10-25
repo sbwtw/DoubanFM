@@ -34,8 +34,10 @@ DoubanFM::DoubanFM() :
     pause = new ButtonLabel;
     pause->setNormalImage(QPixmap(":/images/resource/images/pause.png"));
     like = new ButtonLabel;
+    like->setCheckable(true);
     like->setNormalImage(QPixmap(":/images/resource/images/like.png"));
     like->setHoverImage(QPixmap(":/images/resource/images/like-hover.png"));
+    like->setCheckedImage(QPixmap(":/images/resource/images/like-liked.png"));
     trash = new ButtonLabel;
     trash->setNormalImage(QPixmap(":/images/resource/images/remove.png"));
     trash->setHoverImage(QPixmap(":/images/resource/images/remove-hover.png"));
@@ -185,6 +187,8 @@ DoubanFM::DoubanFM() :
     connect(refreshUITimer, &QTimer::timeout, this, &DoubanFM::refreshTimeInfo);
     connect(refreshLyricTimer, &QTimer::timeout, this, &DoubanFM::refreshLyricText);
     connect(next, &ButtonLabel::clicked, this, &DoubanFM::nextSong);
+    connect(like, &ButtonLabel::clicked, this, &DoubanFM::toggleLikeSong);
+    connect(trash, &ButtonLabel::clicked, this, &DoubanFM::removeSong);
     connect(pause, &ButtonLabel::clicked, this, &DoubanFM::pauseSong);
     connect(quitOrHideTimer, &QTimer::timeout, this, &DoubanFM::hide);
     connect(&systemTray, &QSystemTrayIcon::activated, this, &DoubanFM::systemTrayActivated);
@@ -414,6 +418,7 @@ void DoubanFM::play()
     artist->setText(song.artist());
     album->setText(QString("< %1 >").arg(song.albumtitle()));
     songName->setText(song.title());
+    like->setChecked(song.like());
 }
 
 void DoubanFM::nextSong()
@@ -441,6 +446,54 @@ void DoubanFM::pauseSong()
     }
 
     refreshTimeInfo();
+}
+
+void DoubanFM::toggleLikeSong()
+{
+    const QString &reportType = songList.first().like() ? "u" : "r";
+
+    // toggle song object state
+    songList.first().setLikeState(!songList.first().like());
+
+    QUrl url("http://www.douban.com/j/app/radio/people");
+    QUrlQuery query;
+    query.addQueryItem("app_name", "radio_desktop_win");
+    query.addQueryItem("version", "100");
+    query.addQueryItem("user_id", user.user_id());
+    query.addQueryItem("expire", user.expire());
+    query.addQueryItem("token", user.token());
+    query.addQueryItem("sid", songList.first().sid());
+//    query.addQueryItem("h", QString("|%1:%2").arg(songList.first().sid()).arg(reportType));
+    query.addQueryItem("channel", QString::number(channelWindow->channel().id()));
+    query.addQueryItem("type", reportType);
+    url.setQuery(query);
+    QNetworkReply *reply = manager->get(QNetworkRequest(url));
+
+//    connect(reply, &QNetworkReply::finished, [reply] {
+//        qDebug() << reply->readAll();
+//    });
+    connect(reply, &QNetworkReply::finished, this, &DoubanFM::loadSongListFinish);
+}
+
+void DoubanFM::removeSong()
+{
+    QUrl url("http://www.douban.com/j/app/radio/people");
+    QUrlQuery query;
+    query.addQueryItem("app_name", "radio_desktop_win");
+    query.addQueryItem("version", "100");
+    query.addQueryItem("user_id", user.user_id());
+    query.addQueryItem("expire", user.expire());
+    query.addQueryItem("token", user.token());
+    query.addQueryItem("sid", songList.first().sid());
+    query.addQueryItem("channel", QString::number(channelWindow->channel().id()));
+    query.addQueryItem("type", "b");
+    url.setQuery(query);
+    QNetworkReply *reply = manager->get(QNetworkRequest(url));
+
+    connect(reply, &QNetworkReply::finished, this, &DoubanFM::loadSongListFinish);
+
+    // play next song
+    nextSong();
 }
 
 void DoubanFM::refreshTimeInfo()
@@ -512,7 +565,8 @@ void DoubanFM::loadSongListFinish()
         songList.append(song);
     }
 
-    play();
+    if (player.state() == QMediaPlayer::StoppedState)
+        play();
 }
 
 void DoubanFM::loadSongPicture(const Song &song)

@@ -17,6 +17,26 @@ void Song::operator =(const Song &song)
     data = song.getData();
 }
 
+void Song::setLikeState(bool liked)
+{
+    if (!data.isObject())
+        return;
+
+    QJsonObject obj = data.toObject();
+    obj["like"] = liked ? 1 : 0;
+
+    data = QJsonValue(obj);
+}
+
+int Song::getInt(const QString &key, const int def) const
+{
+    if (!data.isObject())
+        return def;
+
+    const QJsonObject &obj = data.toObject();
+    return obj.value(key).toInt(def);
+}
+
 const QString Song::getString(const QString &key) const
 {
     if (!data.isObject())

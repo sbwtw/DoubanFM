@@ -17,4 +17,4 @@ src/build*/
 *.pro.user*
 
 # binary file
-DoubanFM
+src/DoubanFM

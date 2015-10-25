@@ -60,6 +60,9 @@ private slots:
     void nextSong();
     void pauseSong();
 
+    void toggleLikeSong();
+    void removeSong();
+
     void refreshTimeInfo();
     void refreshLyricText();
 
