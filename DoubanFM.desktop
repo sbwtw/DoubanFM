@@ -1,0 +1,17 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Encoding=UTF-8
+Name=Douban FM Qt5
+Name[zh_CN]=豆瓣FM
+Name[zh_TW]=豆瓣FM
+GenericName=DoubanFM
+GenericName[zh_CN]=DoubanFM Qt5 客户端
+GenericName[zh_TW]=DoubanFM Qt5 客户端
+Comment=Beautiful DoubanFM player based on Qt5
+Comment[zh_CN]=一个 douban.fm 的客户端
+Comment[zh_TW]=一个 douban.fm 的客户端
+Exec=DoubanFM
+Icon=/usr/share/icons/hicolor/256x256/apps/doubanFM.png
+Terminal=false
+Categories=AudioVideo;Player;

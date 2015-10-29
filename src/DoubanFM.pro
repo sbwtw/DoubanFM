@@ -33,10 +33,13 @@ RESOURCES += \
 
 DESTDIR = $$_PRO_FILE_PWD_
 
-Executable.path = /usr/bin
+Executable.path = $$INSTROOT/usr/bin
+icon.path = $$INSTROOT/usr/share/icons/hicolor/256x256/apps
+desktop.path = $$INSTROOT/usr/share/applications
 Executable.files = DoubanFM
-
-INSTALLS = Executable
+icon.files = resource/images/doubanFM.png
+desktop.files = ../DoubanFM.desktop
+INSTALLS = Executable icon desktop
 
 CONFIG(debug, debug|release) {
 } else {
