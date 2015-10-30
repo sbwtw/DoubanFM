@@ -32,7 +32,7 @@ DoubanFM 为保持与豆瓣网页版一样简洁的显示界面，功能控制�
 ## Qt依赖
 Qt5-core Qt5-gui Qt5-widgets Qt5-multimedia Qt5-network Qt5-x11extras
 ## 第三方库
-X11 Xext
+X11 Xext gstreamer1.0-plugins-bad
 
 ## 编译
 ```
