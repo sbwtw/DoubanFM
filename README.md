@@ -14,7 +14,7 @@
 - [x] 独立的歌词窗口
 - [x] 歌词窗口锁定(不接收鼠标事件)
 - [ ] 歌词窗口切换动效
-- [ ] 切换音乐频道
+- [x] 切换音乐频道
 - [ ] 收藏频道
 - [ ] 支持Fn媒体热键
 
@@ -36,14 +36,14 @@ X11 Xext gstreamer1.0-plugins-bad
 
 ## 编译
 ```
-git clone git@github.com:sbwtw/doubanFM.git
-cd doubanFM/
+git clone git@github.com:sbwtw/DoubanFM.git
+cd DoubanFM/src/
 mkdir build
 cd build
 qmake ..
 make -j4
-./DoubanFM
 ```
+编译好的二进制文件保存在DoubanFM/src/DoubanFM
 
 ## 安装
 ### 默认安装为 /usr/bin/DoubanFM
