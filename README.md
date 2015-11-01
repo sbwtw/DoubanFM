@@ -1,5 +1,6 @@
 # DoubanFM
 使用Qt5构建的豆瓣音乐Linux桌面端。
+如果你喜欢本项目，别忘了点个赞！如果你有时间，欢迎加入共同开发～
 
 ![DoubanFM](https://raw.githubusercontent.com/sbwtw/doubanFM/master/screenshot/MainWindow.png)
 
