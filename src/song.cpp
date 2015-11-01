@@ -20,7 +20,7 @@ void Song::operator =(const Song &song)
 void Song::setLikeState(bool liked)
 {
     if (!data.isObject())
-        return;
+        data = QJsonObject();
 
     QJsonObject obj = data.toObject();
     obj["like"] = liked ? 1 : 0;

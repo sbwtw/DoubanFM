@@ -17,6 +17,11 @@ void Channel::operator=(const Channel &channel)
     data = channel.jsonValue();
 }
 
+void Channel::setId(const int id)
+{
+    setData("channel_id", id);
+}
+
 int Channel::id() const
 {
     if (!data.isObject())
@@ -41,6 +46,35 @@ int Channel::seq() const
         return value.toDouble(-1);
 
     return -1;
+}
+
+void Channel::setName(const QString &name)
+{
+    setData("name", name);
+    qDebug() << "get name: " << getString("name");
+}
+
+const QString Channel::getString(const QString &key) const
+{
+    if (!data.isObject())
+        return QString();
+
+    const QJsonObject &obj = data.toObject();
+    return obj.value(key).toString();
+}
+
+template<typename T>
+void Channel::setData(const QString &key, const T &value)
+{
+    if (!data.isObject())
+        data = QJsonObject();
+
+    QJsonObject obj = data.toObject();
+    obj[key] = value;
+
+    qDebug() << obj;
+
+    data = QJsonValue(obj);
 }
 
 QDebug operator<<(QDebug debug, const Channel &channel)

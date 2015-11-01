@@ -24,7 +24,7 @@ public:
     explicit ButtonLabel(QWidget *parent = 0);
 
     void setChecked(bool stat);
-    inline bool checked() const {return m_checked;}
+    inline bool checked() const {return state == Checked;}
     inline bool checkable() const {return m_checkable;}
     inline void setCheckable(bool stat) {m_checkable = stat;}
     inline void setNormalImage(const QPixmap &img) {normalImage = img; setShownImage();}
@@ -44,7 +44,6 @@ private slots:
 private:
     State state = Normal;
 
-    bool m_checked = false;
     bool m_checkable = false;
 
     QPixmap normalImage;

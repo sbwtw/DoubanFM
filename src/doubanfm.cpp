@@ -181,7 +181,7 @@ DoubanFM::DoubanFM() :
 
     connect(layricTips, &ButtonLabel::clicked, picture, &ButtonLabel::clicked);
     connect(picture, &ButtonLabel::clicked, this, &DoubanFM::toggleLayricsWindow);
-    connect(channelWindow, &ChannelFrame::ChannelSelected, this, &DoubanFM::channelChanged);
+    connect(channelWindow, &ChannelFrame::channelChanged, this, &DoubanFM::channelChanged);
     connect(&player, &QMediaPlayer::durationChanged, timeAxis, &QProgressBar::setMaximum);
     connect(&player, &QMediaPlayer::mediaStatusChanged, this, &DoubanFM::playerStateChanged);
     connect(refreshUITimer, &QTimer::timeout, this, &DoubanFM::refreshTimeInfo);
