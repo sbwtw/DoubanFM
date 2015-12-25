@@ -362,7 +362,7 @@ void DoubanFM::loginRequest(const QString &username, const QString &password)
     qDebug() << "login: " << username << password;
     QUrl url("http://www.douban.com/j/app/login");
     QUrlQuery query;
-    query.addQueryItem("app_name", "radio_desktop_win");
+    query.addQueryItem("app_name", "radio_android");
     query.addQueryItem("version", "100");
     query.addQueryItem("email", username);
     query.addQueryItem("password", password);
@@ -457,7 +457,7 @@ void DoubanFM::toggleLikeSong()
 
     QUrl url("http://www.douban.com/j/app/radio/people");
     QUrlQuery query;
-    query.addQueryItem("app_name", "radio_desktop_win");
+    query.addQueryItem("app_name", "radio_android");
     query.addQueryItem("version", "100");
     query.addQueryItem("user_id", user.user_id());
     query.addQueryItem("expire", user.expire());
@@ -479,7 +479,7 @@ void DoubanFM::removeSong()
 {
     QUrl url("http://www.douban.com/j/app/radio/people");
     QUrlQuery query;
-    query.addQueryItem("app_name", "radio_desktop_win");
+    query.addQueryItem("app_name", "radio_android");
     query.addQueryItem("version", "100");
     query.addQueryItem("user_id", user.user_id());
     query.addQueryItem("expire", user.expire());
@@ -519,7 +519,7 @@ void DoubanFM::loadSongList()
 {
     QUrl url("http://www.douban.com/j/app/radio/people");
     QUrlQuery query;
-    query.addQueryItem("app_name", "radio_desktop_win");
+    query.addQueryItem("app_name", "radio_android");
     query.addQueryItem("version", "100");
     query.addQueryItem("user_id", user.user_id());
     query.addQueryItem("expire", user.expire());

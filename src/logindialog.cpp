@@ -2,6 +2,9 @@
 #include "constants.h"
 
 #include <QVBoxLayout>
+#include <QString>
+#include <QDialog>
+#include <QSettings>
 
 using DouBanFM::APP_NAME;
 
