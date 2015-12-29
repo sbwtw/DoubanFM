@@ -345,6 +345,8 @@ void DoubanFM::quitOrHide()
 void DoubanFM::hide()
 {
     systemTray.show();
+    channelWindow->hide();
+
     QFrame::hide();
 }
 
