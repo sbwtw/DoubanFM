@@ -49,7 +49,7 @@ private:
 private:
     std::shared_ptr<QNetworkAccessManager> manager;
 
-    int lyricOffset = 500;
+    int lyricOffset = 200;
     int nextLyricPos = 0;
     bool mousePressed = false;
     bool passX11Event = false;
