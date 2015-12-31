@@ -241,10 +241,11 @@ void DoubanFM::keyPressEvent(QKeyEvent *e)
     const int key = e->key();
 
     switch (key) {
-    case Qt::Key_L:     toggleLayricsWindow();                      break;
-    case Qt::Key_C:     toggleChannelsWindow();                     break;
-    case Qt::Key_W:     lyricWindow->toggleWindowPassEvent();       break;
-    case Qt::Key_Escape:quitOrHide();                               break;
+    case Qt::Key_L:         toggleLayricsWindow();                      break;
+    case Qt::Key_C:         toggleChannelsWindow();                     break;
+    case Qt::Key_W:         lyricWindow->toggleWindowPassEvent();       break;
+    case Qt::Key_Space:     pauseSong();                                break;
+    case Qt::Key_Escape:    quitOrHide();                               break;
     default:;
     }
 
