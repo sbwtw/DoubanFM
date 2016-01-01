@@ -217,16 +217,23 @@ void DoubanFM::show()
 
 void DoubanFM::mousePressEvent(QMouseEvent *e)
 {
+    Q_UNUSED(e)
+
     mousePressed = true;
-    mousePressPoint = e->pos();
+    mousePressPoint = QCursor::pos();
 }
 
 void DoubanFM::mouseMoveEvent(QMouseEvent *e)
 {
+    Q_UNUSED(e)
+
     if (!mousePressed)
         return;
 
-    move(e->pos() - mousePressPoint + pos());
+    const QPoint cursor_pos = QCursor::pos();
+
+    move(cursor_pos - mousePressPoint + pos());
+    mousePressPoint = cursor_pos;
 }
 
 void DoubanFM::mouseReleaseEvent(QMouseEvent *e)
