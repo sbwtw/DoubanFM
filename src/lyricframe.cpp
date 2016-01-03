@@ -98,6 +98,8 @@ void LyricFrame::toggleWindowPassEvent()
 {
     passX11Event = !passX11Event;
 
+//    setAttribute(Qt::WA_TransparentForMouseEvents, true);
+
     if (passX11Event) {
 //        _XRegion region;
 //        memset(&region, 0, sizeof(_XRegion));
