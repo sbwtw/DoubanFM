@@ -88,6 +88,8 @@ void LyricFrame::refreshLyric(qint64 msec)
     if (lyricsList.isEmpty() || nextLyricPos == lyricsList.count())
         return;
 
+//    qDebug() << msec << lyricsList.at(nextLyricPos).start << lyricsList.at(nextLyricPos).text;
+
     if (lyricsList.at(nextLyricPos).start <= msec + lyricOffset) {
         setLyricText(lyricsList.at(nextLyricPos).text);
         ++nextLyricPos;
@@ -170,9 +172,9 @@ void LyricFrame::loadLyricFinish()
 
     if (lyric.isEmpty())
         qDebug() << "lyric is empty" << obj;
-//    qDebug() << lyric;
+    qDebug() << lyric;
 
-    QRegularExpression re("((?:\\[[\\d\\.:]+\\] *)+)(.*?)(?=[$\\r])");
+    QRegularExpression re("((?:\\[[\\d\\.:]+\\] *)+)([^\\[]*?)(?=[$\\r\\n\\[])");
     QRegularExpressionMatch match;
     int pos = 0;
     do {
@@ -183,6 +185,8 @@ void LyricFrame::loadLyricFinish()
 
         const QString &text = match.captured(2);
         const QString &time = match.captured(1);
+
+        qDebug() << time << text;
 
         addLyricLine(time, text);
     } while (pos != -1);
