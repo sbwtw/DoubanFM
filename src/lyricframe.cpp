@@ -172,7 +172,7 @@ void LyricFrame::loadLyricFinish()
         qDebug() << "lyric is empty" << obj;
 //    qDebug() << lyric;
 
-    QRegularExpression re("((?:\\[[\\d\\.:]+\\])+)(.*?)(?=[$\\r])");
+    QRegularExpression re("((?:\\[[\\d\\.:]+\\] *)+)(.*?)(?=[$\\r])");
     QRegularExpressionMatch match;
     int pos = 0;
     do {

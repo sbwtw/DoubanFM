@@ -11,22 +11,24 @@ SOURCES += main.cpp \
     doubanfm.cpp \
     buttonlabel.cpp \
     song.cpp \
-    channel.cpp \
-    channelframe.cpp \
     lyricframe.cpp \
     logindialog.cpp \
-    user.cpp
+    user.cpp \
+    channel/channel.cpp \
+    channel/channelframe.cpp \
+    channel/channelmodel.cpp
 
 HEADERS  += \
     doubanfm.h \
     buttonlabel.h \
     song.h \
-    channel.h \
-    channelframe.h \
     lyricframe.h \
     constants.h \
     logindialog.h \
-    user.h
+    user.h \
+    channel/channel.h \
+    channel/channelframe.h \
+    channel/channelmodel.h
 
 RESOURCES += \
     resource.qrc

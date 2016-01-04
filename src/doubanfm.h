@@ -3,9 +3,9 @@
 
 #include "buttonlabel.h"
 #include "lyricframe.h"
-#include "channelframe.h"
 #include "song.h"
 #include "user.h"
+#include "channel/channelframe.h"
 
 #include <QFrame>
 #include <QLabel>
