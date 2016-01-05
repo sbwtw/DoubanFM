@@ -70,6 +70,9 @@ private slots:
     void loadSongListFinish();
     void loadSongPicture(const Song &song);
     void loadSongPictureFinish();
+    void reportPlaying(const Song &song);
+    void reportSkip(const Song &song);
+    void reportBye(const Song &song);
 
 private:
     bool mousePressed = false;

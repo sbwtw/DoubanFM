@@ -422,6 +422,7 @@ void DoubanFM::play()
     player.setMedia(QMediaContent(song.url()));
     player.play();
 
+    reportPlaying(song);
     loadSongPicture(song);
     lyricWindow->loadLyric(song);
 
@@ -602,4 +603,60 @@ void DoubanFM::loadSongPictureFinish()
     pixmap = pixmap.copy((pixmap.width() - width) / 2, (pixmap.height() - width) / 2, width, width);
 
     picture->setPixmap(pixmap);
+}
+
+void DoubanFM::reportPlaying(const Song &song)
+{
+    // TODO: history
+
+    QUrl url("http://www.douban.com/j/app/radio/people");
+    QUrlQuery query;
+    query.addQueryItem("app_name", "radio_android");
+    query.addQueryItem("version", "100");
+    query.addQueryItem("user_id", user.user_id());
+    query.addQueryItem("expire", user.expire());
+    query.addQueryItem("token", user.token());
+    query.addQueryItem("channel", QString::number(channelWindow->channel().id()));
+    query.addQueryItem("type", "p");
+    query.addQueryItem("sid", song.sid());
+    url.setQuery(query);
+    QNetworkReply *reply = manager->get(QNetworkRequest(url));
+
+    connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
+}
+
+void DoubanFM::reportSkip(const Song &song)
+{
+    QUrl url("http://www.douban.com/j/app/radio/people");
+    QUrlQuery query;
+    query.addQueryItem("app_name", "radio_android");
+    query.addQueryItem("version", "100");
+    query.addQueryItem("user_id", user.user_id());
+    query.addQueryItem("expire", user.expire());
+    query.addQueryItem("token", user.token());
+    query.addQueryItem("channel", QString::number(channelWindow->channel().id()));
+    query.addQueryItem("type", "s");
+    query.addQueryItem("sid", song.sid());
+    url.setQuery(query);
+    QNetworkReply *reply = manager->get(QNetworkRequest(url));
+
+    connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
+}
+
+void DoubanFM::reportBye(const Song &song)
+{
+    QUrl url("http://www.douban.com/j/app/radio/people");
+    QUrlQuery query;
+    query.addQueryItem("app_name", "radio_android");
+    query.addQueryItem("version", "100");
+    query.addQueryItem("user_id", user.user_id());
+    query.addQueryItem("expire", user.expire());
+    query.addQueryItem("token", user.token());
+    query.addQueryItem("channel", QString::number(channelWindow->channel().id()));
+    query.addQueryItem("type", "b");
+    query.addQueryItem("sid", song.sid());
+    url.setQuery(query);
+    QNetworkReply *reply = manager->get(QNetworkRequest(url));
+
+    connect(reply, &QNetworkReply::finished, this, &DoubanFM::loadSongListFinish);
 }
