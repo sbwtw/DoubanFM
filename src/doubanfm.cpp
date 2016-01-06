@@ -421,6 +421,7 @@ void DoubanFM::play()
 
     player.setMedia(QMediaContent(song.url()));
     player.play();
+    listen_history.append(song.sid());
 
     reportPlaying(song);
     loadSongPicture(song);
@@ -536,12 +537,10 @@ void DoubanFM::loadSongList()
     query.addQueryItem("expire", user.expire());
     query.addQueryItem("token", user.token());
     query.addQueryItem("channel", QString::number(channelWindow->channel().id()));
-//    query.addQueryItem("channel", user.isLogined() ? "-3" : "0");
     query.addQueryItem("type", "n");
     url.setQuery(query);
     QNetworkReply *reply = manager->get(QNetworkRequest(url));
 
-    qDebug() << query.toString();
     connect(reply, &QNetworkReply::finished, this, &DoubanFM::loadSongListFinish);
 }
 

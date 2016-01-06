@@ -98,6 +98,7 @@ private:
     QMediaPlayer player;
 
     User user;
+    QStringList listen_history;
 
     QTimer *refreshUITimer;
     QTimer *refreshLyricTimer;
