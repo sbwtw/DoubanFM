@@ -53,6 +53,8 @@ private slots:
     void quitOrHide();
     void hide();
     void systemTrayActivated(QSystemTrayIcon::ActivationReason reason);
+    void login(bool autoAccept = true);
+    void logout();
     void loginRequest(const QString &username, const QString &password);
     void loginRequestFinish();
 

@@ -13,11 +13,14 @@ class LoginDialog : public QDialog
     Q_OBJECT
 
 public:
-    LoginDialog(QWidget *parent = 0);
+    LoginDialog(bool autoAccept = true, QWidget *parent = 0);
     ~LoginDialog();
 
     inline const QString username() const {return usernameEdit->text();}
     inline const QString password() const {return passwordEdit->text();}
+
+public:
+    void show();
 
 signals:
     void login(const QString &username, const QString &password);
@@ -32,6 +35,8 @@ private:
     QPushButton *cancelBtn;
 
     QSettings *settings;
+
+    bool autoAccept = true;
 };
 
 #endif // LOGINDIALOG_H

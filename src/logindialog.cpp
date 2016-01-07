@@ -5,14 +5,16 @@
 #include <QString>
 #include <QDialog>
 #include <QSettings>
+#include <QDebug>
 
 using DouBanFM::APP_NAME;
 
 static const QString CFG_NAME = QString("LoginDialog");
 
-LoginDialog::LoginDialog(QWidget *parent) :
+LoginDialog::LoginDialog(bool autoAccept, QWidget *parent) :
     QDialog(parent),
-    settings(new QSettings(APP_NAME, CFG_NAME, this))
+    settings(new QSettings(APP_NAME, CFG_NAME, this)),
+    autoAccept(autoAccept)
 {
     usernameLabel = new QLabel(tr("User name:"));
     passwordLabel = new QLabel(tr("Password:"));
@@ -64,4 +66,12 @@ LoginDialog::~LoginDialog()
         settings->setValue("username", QVariant());
         settings->setValue("password", QVariant());
     }
+}
+
+void LoginDialog::show()
+{
+    if (autoAccept && autoLoginCheck->isChecked())
+        acceptBtn->clicked();
+
+    QDialog::show();
 }

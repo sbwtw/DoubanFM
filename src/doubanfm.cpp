@@ -176,9 +176,6 @@ DoubanFM::DoubanFM() :
     setWindowIcon(QIcon(":/images/resource/images/doubanFM.png"));
     move(QApplication::desktop()->screen()->rect().center() - rect().center());
 
-    LoginDialog *loginDialog = new LoginDialog(this);
-    loginDialog->show();
-
     connect(layricTips, &ButtonLabel::clicked, picture, &ButtonLabel::clicked);
     connect(picture, &ButtonLabel::clicked, this, &DoubanFM::toggleLayricsWindow);
     connect(channelWindow, &ChannelFrame::channelChanged, this, &DoubanFM::channelChanged);
@@ -193,9 +190,8 @@ DoubanFM::DoubanFM() :
     connect(quitOrHideTimer, &QTimer::timeout, this, &DoubanFM::hide);
     connect(&systemTray, &QSystemTrayIcon::activated, this, &DoubanFM::systemTrayActivated);
     connect(volumeSlider, &QSlider::valueChanged, &player, &QMediaPlayer::setVolume);
-    connect(loginDialog, &LoginDialog::login, this,&DoubanFM::loginRequest);
-    connect(loginDialog, &LoginDialog::login, loginDialog, &LoginDialog::deleteLater);
 
+    login();
     toggleLayricsWindow();
     channelWindow->loadChannelList();
 
@@ -253,6 +249,7 @@ void DoubanFM::keyPressEvent(QKeyEvent *e)
     case Qt::Key_W:         lyricWindow->toggleWindowPassEvent();       break;
     case Qt::Key_Space:     pauseSong();                                break;
     case Qt::Key_Escape:    quitOrHide();                               break;
+    case Qt::Key_Q:         logout();                                   break;
     default:;
     }
 
@@ -365,6 +362,24 @@ void DoubanFM::systemTrayActivated(QSystemTrayIcon::ActivationReason reason)
     case QSystemTrayIcon::MiddleClick:  quit();                     break;
     default:;
     }
+}
+
+void DoubanFM::login(bool autoAccept)
+{
+    LoginDialog *loginDialog = new LoginDialog(autoAccept, this);
+
+    connect(loginDialog, &LoginDialog::login, this, &DoubanFM::loginRequest);
+    connect(loginDialog, &LoginDialog::accepted, loginDialog, &LoginDialog::deleteLater, Qt::QueuedConnection);
+
+    loginDialog->show();
+}
+
+void DoubanFM::logout()
+{
+    // TODO: clear old cookies
+    //
+
+    login(false);
 }
 
 void DoubanFM::loginRequest(const QString &username, const QString &password)
