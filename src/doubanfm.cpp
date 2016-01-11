@@ -450,6 +450,9 @@ void DoubanFM::play()
 
 void DoubanFM::nextSong()
 {
+    if (player.state() == QMediaPlayer::PausedState)
+        pauseSong();
+
     player.stop();
     if (!songList.isEmpty())
         songList.pop_front();
