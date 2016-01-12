@@ -183,7 +183,8 @@ DoubanFM::DoubanFM() :
     connect(&player, &QMediaPlayer::mediaStatusChanged, this, &DoubanFM::playerStateChanged);
     connect(refreshUITimer, &QTimer::timeout, this, &DoubanFM::refreshTimeInfo);
     connect(refreshLyricTimer, &QTimer::timeout, this, &DoubanFM::refreshLyricText);
-    connect(next, &ButtonLabel::clicked, this, &DoubanFM::nextSong);
+//    connect(next, &ButtonLabel::clicked, this, &DoubanFM::nextSong);
+    connect(next, &ButtonLabel::clicked, [this] {reportSkip(songList.first());});
     connect(like, &ButtonLabel::clicked, this, &DoubanFM::toggleLikeSong);
     connect(trash, &ButtonLabel::clicked, this, &DoubanFM::removeSong);
     connect(pause, &ButtonLabel::clicked, this, &DoubanFM::pauseSong);
@@ -327,7 +328,8 @@ void DoubanFM::playerStateChanged(const QMediaPlayer::MediaStatus stat)
 {
     switch (stat)
     {
-    case QMediaPlayer::EndOfMedia:      nextSong();             break;
+    case QMediaPlayer::EndOfMedia:      reportEnd(songList.first());
+                                        nextSong();                     break;
     default:;
     }
 }
@@ -640,7 +642,7 @@ void DoubanFM::reportPlaying(const Song &song)
     url.setQuery(query);
     QNetworkReply *reply = manager->get(QNetworkRequest(url));
 
-    connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
+    connect(reply, &QNetworkReply::finished, this, &DoubanFM::loadSongListFinish);
 }
 
 void DoubanFM::reportSkip(const Song &song)
@@ -658,7 +660,9 @@ void DoubanFM::reportSkip(const Song &song)
     url.setQuery(query);
     QNetworkReply *reply = manager->get(QNetworkRequest(url));
 
-    connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
+    connect(reply, &QNetworkReply::finished, this, &DoubanFM::loadSongListFinish);
+
+    nextSong();
 }
 
 void DoubanFM::reportBye(const Song &song)
@@ -677,4 +681,22 @@ void DoubanFM::reportBye(const Song &song)
     QNetworkReply *reply = manager->get(QNetworkRequest(url));
 
     connect(reply, &QNetworkReply::finished, this, &DoubanFM::loadSongListFinish);
+}
+
+void DoubanFM::reportEnd(const Song &song)
+{
+    QUrl url("http://www.douban.com/j/app/radio/people");
+    QUrlQuery query;
+    query.addQueryItem("app_name", "radio_android");
+    query.addQueryItem("version", "100");
+    query.addQueryItem("user_id", user.user_id());
+    query.addQueryItem("expire", user.expire());
+    query.addQueryItem("token", user.token());
+    query.addQueryItem("channel", QString::number(channelWindow->channel().id()));
+    query.addQueryItem("type", "e");
+    query.addQueryItem("sid", song.sid());
+    url.setQuery(query);
+    QNetworkReply *reply = manager->get(QNetworkRequest(url));
+
+    connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
 }

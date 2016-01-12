@@ -75,6 +75,7 @@ private slots:
     void reportPlaying(const Song &song);
     void reportSkip(const Song &song);
     void reportBye(const Song &song);
+    void reportEnd(const Song &song);
 
 private:
     bool mousePressed = false;
@@ -100,6 +101,7 @@ private:
     QMediaPlayer player;
 
     User user;
+    // TODO: remove?
     QStringList listen_history;
 
     QTimer *refreshUITimer;
