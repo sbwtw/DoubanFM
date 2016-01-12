@@ -300,7 +300,6 @@ void DoubanFM::hideVolumeSlider()
 
 void DoubanFM::toggleLayricsWindow()
 {
-    qDebug() << "toggle layrics";
     lyricWindow->setVisible(!lyricWindow->isVisible());
 
     if (!lyricWindow->isVisible())
@@ -436,6 +435,8 @@ void DoubanFM::play()
 
     player.setMedia(QMediaContent(song.url()));
     player.play();
+    if (listen_history.count() > 100)
+        listen_history.clear();
     listen_history.append(song.sid());
 
     reportPlaying(song);
